@@ -1,0 +1,61 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: #1A56DB;
+  --color-primary-dark: #1343B8;
+  --color-primary-light: #EFF6FF;
+  --color-navy: #0A1F44;
+  --color-sky: #0EA5E9;
+  --color-sky-light: #E0F2FE;
+  --color-surface: #F8FAFF;
+  --color-card: #FFFFFF;
+  --color-border: #E5EEFF;
+  --color-muted: #6B7280;
+  --color-subtle: #9CA3AF;
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Playfair Display', ui-serif, Georgia, serif;
+
+  --radius-card: 20px;
+  --radius-btn: 12px;
+  --radius-input: 12px;
+
+  --shadow-card: 0 2px 16px 0 rgba(10, 31, 68, 0.08);
+  --shadow-card-hover: 0 8px 32px 0 rgba(26, 86, 219, 0.14);
+  --shadow-nav: 0 1px 0 0 #E5EEFF, 0 4px 24px 0 rgba(10, 31, 68, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  background: #F8FAFF;
+  color: #0A1F44;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #D1D9F0;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #A5B4D8;
+}
+
+.font-display {
+  font-family: 'Playfair Display', ui-serif, Georgia, serif;
+}
