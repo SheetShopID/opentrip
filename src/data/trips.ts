@@ -89,7 +89,7 @@ export const TRIPS: Trip[] = [
     id: 7,
     title: 'Belitung Island Open Trip — White Sand & Clear Blue Sea',
     location: 'Belitung, Kepulauan Bangka Belitung',
-    image: 'https://images.unsplash.com/photo-1559628233-100c798642d9?w=800&h=600&fit=crop&auto=format',
+    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWN8Omn6Pn7q8c4CreJTIQaoji-AJXjfWpUOOZGNAeKVtpP2h2g_mGzbuL&s=10',
     price: 1_650_000,
     rating: 4.7,
     reviews: 376,
