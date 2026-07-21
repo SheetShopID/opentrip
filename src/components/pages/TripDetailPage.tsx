@@ -5,9 +5,9 @@ import {
   Heart, Share2, Star, MapPin, Clock, Users, CheckCircle2,
   ChevronDown, ChevronUp, Camera, Utensils, Shield, Info,
   ChevronLeft, ChevronRight, Calendar
-} from 'lucide-react' 
-import TripCard from '@/components/TripCard'
+} from 'lucide-react'  
 import { useAppNavigate } from '@/hooks/useAppNavigate'
+import TripCard, { Trip } from '@/components/TripCard'
 
 interface ItineraryDay {
   day: number
@@ -30,19 +30,8 @@ interface Review {
   text: string
 }
 
-interface Trip {
-  id: string
-  title: string
-  category: string
-  badge?: string
-  location: string
-  duration: string
-  groupSize: string
-  rating: number
-  reviews: number
-  price: number
-  originalPrice?: number
-
+interface TripDetail extends Trip {
+  image: string
   gallery: string[]
   highlights: string[]
   itinerary: ItineraryDay[]
@@ -51,11 +40,9 @@ interface Trip {
   departureDates: DepartureDate[]
   reviewsData: Review[]
 }
-
 interface TripDetailPageProps {
-  trip: Trip
+  trip: TripDetail
 }
-
 export default function TripDetailPage({ trip }: TripDetailPageProps) {
   const ITINERARY = trip.itinerary ?? []
   const INCLUSIONS = trip.inclusions ?? []
