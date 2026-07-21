@@ -5,140 +5,24 @@ import {
   Heart, Share2, Star, MapPin, Clock, Users, CheckCircle2,
   ChevronDown, ChevronUp, Camera, Utensils, Shield, Info,
   ChevronLeft, ChevronRight, Calendar
-} from 'lucide-react'
-import { TRIPS } from '@/data/trips'
+} from 'lucide-react' 
 import TripCard from '@/components/TripCard'
 import { useAppNavigate } from '@/hooks/useAppNavigate'
 
 interface TripDetailPageProps {
-  tripId: number
+  trip: any
 }
 
-const ITINERARY = [
-  {
-    day: 1,
-    title: 'Tiba di Sorong — Transfer ke Raja Ampat',
-    activities: [
-      'Pick up di Bandara DEO Sorong',
-      'Transfer ke Pelabuhan Feri Sorong',
-      'Menyeberang ke Waisai, ibu kota Raja Ampat (2-3 jam)',
-      'Check-in homestay / resort lokal',
-      'Makan malam & briefing perjalanan',
-    ],
-  },
-  {
-    day: 2,
-    title: 'Island Hopping — Piaynemo & Wayag',
-    activities: [
-      'Sarapan pagi di homestay',
-      'Trekking ke puncak bukit Piaynemo (viewpoint ikonik)',
-      'Snorkeling di perairan Piaynemo',
-      'Berlayar menuju Wayag',
-      'Sunset di atas bukit Wayag',
-      'Makan malam di atas kapal',
-    ],
-  },
-  {
-    day: 3,
-    title: 'Diving & Snorkeling di Misool',
-    activities: [
-      'Diving (certified diver) atau snorkeling (non-diver)',
-      'Mengunjungi Batu Pensil — formasi batu ikonik',
-      'Makan siang di pantai pasir putih',
-      'Snorkeling di Teluk Kabui',
-      'Kembali ke Waisai',
-    ],
-  },
-  {
-    day: 4,
-    title: 'Arborek Village & Pulau Pianemo',
-    activities: [
-      'Kunjungan ke Desa Arborek — desa apung tradisional',
-      'Snorkeling di Manta Sandy — spot manta ray',
-      'Lunch di tepi pantai',
-      'Free time & belanja souvenir lokal',
-      'Farewell dinner bersama grup',
-    ],
-  },
-  {
-    day: 5,
-    title: 'Kembali ke Sorong — Kepulangan',
-    activities: [
-      'Sarapan & check out',
-      'Transfer ke Pelabuhan Waisai',
-      'Feri kembali ke Sorong',
-      'Antar ke Bandara DEO Sorong',
-      'Trip selesai — sampai jumpa lagi!',
-    ],
-  },
-]
-
-const INCLUSIONS = [
-  'Transportasi selama perjalanan (fast boat & kapal trip)',
-  'Akomodasi homestay/resort (4 malam)',
-  'Makan 3x sehari (sesuai itinerary)',
-  'Guide lokal berpengalaman',
-  'Alat snorkeling (masker, fins, life vest)',
-  'Tiket masuk kawasan konservasi KKPD',
-  'Air mineral selama perjalanan',
-  'Dokumentasi perjalanan oleh fotografer trip',
-]
-
-const EXCLUSIONS = [
-  'Tiket pesawat ke/dari Sorong',
-  'Biaya diving bagi certified diver (Rp 350.000/dive)',
-  'Pengeluaran pribadi & oleh-oleh',
-  'Tip untuk guide & ABK (opsional)',
-  'Asuransi perjalanan (sangat dianjurkan)',
-]
-
-const DEPARTURE_DATES = [
-  { date: '14 Feb 2025', slots: 3, status: 'available' },
-  { date: '28 Feb 2025', slots: 1, status: 'limited' },
-  { date: '14 Mar 2025', slots: 8, status: 'available' },
-  { date: '28 Mar 2025', slots: 0, status: 'full' },
-  { date: '11 Apr 2025', slots: 12, status: 'available' },
-  { date: '25 Apr 2025', slots: 6, status: 'available' },
-]
-
-const REVIEWS = [
-  {
-    name: 'Dian Pratiwi',
-    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=80&h=80&fit=crop&auto=format',
-    date: 'Januari 2025',
-    rating: 5,
-    text: 'Luar biasa! Pengalaman yang tidak akan terlupakan. Pemandangan Wayag benar-benar seperti surga. Tim guide profesional dan ramah. Makanannya juga enak-enak. Sangat worth it!',
-    trip: 'Trip Jan 14, 2025',
-  },
-  {
-    name: 'Reza Mahendra',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&auto=format',
-    date: 'Desember 2024',
-    rating: 5,
-    text: 'Raja Ampat sesuai ekspektasi bahkan melampaui! Bawah lautnya benar-benar pristine. Spot foto Piaynemo keren banget. Manta ray encounter di Manta Sandy was epic!',
-    trip: 'Trip Des 14, 2024',
-  },
-  {
-    name: 'Fitri Rahayu',
-    avatar: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=80&h=80&fit=crop&auto=format',
-    date: 'November 2024',
-    rating: 4,
-    text: 'Overall sangat memuaskan. Sedikit masalah di hari 2 karena cuaca tidak menentu tapi guide kami sigap cari solusi. Homestay bersih dan nyaman. Pasti akan repeat!',
-    trip: 'Trip Nov 28, 2024',
-  },
-]
-
-const GALLERY = [
-  'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop&auto=format',
-  'https://images.unsplash.com/photo-1559628233-100c798642d9?w=800&h=600&fit=crop&auto=format',
-  'https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop&auto=format',
-  'https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop&auto=format',
-  'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&h=600&fit=crop&auto=format',
-]
-
-export default function TripDetailPage({ tripId }: TripDetailPageProps) {
+export default function TripDetailPage({ trip }: TripDetailPageProps) {
+  const ITINERARY = trip.itinerary ?? []
+  const INCLUSIONS = trip.inclusions ?? []
+  const EXCLUSIONS = trip.exclusions ?? []
+  const DEPARTURE_DATES = trip.departureDates ?? []
+  const REVIEWS = trip.reviewsData ?? []
+  const GALLERY = trip.gallery ?? []
+  
   const onNavigate = useAppNavigate()
-  const trip = TRIPS.find((t) => t.id === tripId) || TRIPS[0]
+  
   const [liked, setLiked] = useState(false)
   const [expandedDay, setExpandedDay] = useState<number | null>(1)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -146,7 +30,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'include' | 'reviews'>('overview')
   const [pax, setPax] = useState(1)
 
-  const relatedTrips = TRIPS.filter((t) => t.id !== tripId).slice(0, 4)
+  const relatedTrips:any[] = []
 
   return (
     <div className="bg-[#F8FAFF] min-h-screen">
