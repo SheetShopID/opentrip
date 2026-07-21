@@ -1,32 +1,70 @@
-import { notFound } from 'next/navigation'
-import TripDetailPage from '@/components/pages/TripDetailPage'
-import { TRIPS } from '@/data/trips'
-import type { Metadata } from 'next'
+import { notFound } from "next/navigation";
+import TripDetailPage from "@/components/pages/TripDetailPage";
+import { getTrip } from "@/services/tripService";
+import type { Metadata } from "next";
 
 interface PageProps {
-  params: Promise<{ id: string }>
+  params: Promise<{ id: string }>;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { id } = await params
-  const trip = TRIPS.find((t) => t.id === Number(id))
-  return {
-    title: trip ? `${trip.title} — OpenTrip` : 'Trip — OpenTrip',
-    description: trip?.title,
+export async function generateMetadata({
+  params,
+}: PageProps): Promise<Metadata> {
+
+  const { id } = await params;
+
+  try {
+
+    const trip = await getTrip(Number(id));
+
+    return {
+
+      title: `${trip.title} — OpenTrip`,
+
+      description: trip.description,
+
+    };
+
+  } catch {
+
+    return {
+
+      title: "Trip",
+
+    };
+
   }
+
 }
 
-export async function generateStaticParams() {
-  return TRIPS.map((trip) => ({ id: String(trip.id) }))
-}
+export default async function Page({
+  params,
+}: PageProps) {
 
-export default async function Page({ params }: PageProps) {
-  const { id } = await params
-  const tripId = Number(id)
+  const { id } = await params;
+
+  const tripId = Number(id);
 
   if (Number.isNaN(tripId)) {
-    notFound()
+
+    notFound();
+
   }
 
-  return <TripDetailPage tripId={tripId} />
+  try {
+
+    const trip = await getTrip(tripId);
+
+    return (
+
+      <TripDetailPage trip={trip} />
+
+    );
+
+  } catch {
+
+    notFound();
+
+  }
+
 }
