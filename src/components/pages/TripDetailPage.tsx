@@ -9,8 +9,51 @@ import {
 import TripCard from '@/components/TripCard'
 import { useAppNavigate } from '@/hooks/useAppNavigate'
 
+interface ItineraryDay {
+  day: number
+  title: string
+  activities: string[]
+}
+
+interface DepartureDate {
+  date: string
+  status: 'available' | 'limited' | 'full'
+  slots: number
+}
+
+interface Review {
+  name: string
+  avatar: string
+  trip: string
+  date: string
+  rating: number
+  text: string
+}
+
+interface Trip {
+  id: string
+  title: string
+  category: string
+  badge?: string
+  location: string
+  duration: string
+  groupSize: string
+  rating: number
+  reviews: number
+  price: number
+  originalPrice?: number
+
+  gallery: string[]
+  highlights: string[]
+  itinerary: ItineraryDay[]
+  inclusions: string[]
+  exclusions: string[]
+  departureDates: DepartureDate[]
+  reviewsData: Review[]
+}
+
 interface TripDetailPageProps {
-  trip: any
+  trip: Trip
 }
 
 export default function TripDetailPage({ trip }: TripDetailPageProps) {
@@ -30,7 +73,7 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'include' | 'reviews'>('overview')
   const [pax, setPax] = useState(1)
 
-  const relatedTrips:any[] = []
+  const relatedTrips: Trip[] = []
 
   return (
     <div className="bg-[#F8FAFF] min-h-screen">
