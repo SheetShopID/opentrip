@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ArrowLeft, CheckCircle2, User, Phone, Mail, MapPin,
   CreditCard, Landmark, Wallet, ChevronRight, Lock, Star,
   Shield, Clock, AlertCircle
 } from 'lucide-react'
-import { TRIPS } from '@/data/trips'
+import { fetchTripById, type Trip } from '@/data/trips'
 import { useAppNavigate } from '@/hooks/useAppNavigate'
 
 interface BookingPageProps {
@@ -26,7 +26,11 @@ const BANKS = ['BCA', 'BNI', 'Mandiri', 'BRI', 'CIMB Niaga']
 
 export default function BookingPage({ tripId }: BookingPageProps) {
   const onNavigate = useAppNavigate()
-  const trip = TRIPS.find((t) => t.id === tripId) || TRIPS[0]
+
+  const [trip, setTrip] = useState<Trip | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   const [step, setStep] = useState(0)
   const [pax, setPax] = useState(2)
   const [selectedDate] = useState('14 Mar 2025')
@@ -46,8 +50,27 @@ export default function BookingPage({ tripId }: BookingPageProps) {
     specialRequest: '',
   })
 
-  const totalPrice = (trip.price + 50_000) * pax
-  const downPayment = Math.round(totalPrice * 0.3)
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    fetchTripById(tripId)
+      .then((data) => {
+        if (cancelled) return
+        if (!data) {
+          setError('Trip tidak ditemukan.')
+        } else {
+          setTrip(data)
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Gagal memuat trip.')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [tripId])
 
   const updateForm = (field: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
@@ -57,6 +80,25 @@ export default function BookingPage({ tripId }: BookingPageProps) {
     : step === 1 ? (form.firstName && form.email && form.phone)
     : step === 2 ? agreed
     : true
+
+  if (loading) {
+    return (
+      <div className="bg-[#F8FAFF] min-h-screen flex items-center justify-center">
+        <p className="text-sm text-[#6B7280]">Memuat trip...</p>
+      </div>
+    )
+  }
+
+  if (error || !trip) {
+    return (
+      <div className="bg-[#F8FAFF] min-h-screen flex items-center justify-center">
+        <p className="text-sm text-red-500">{error || 'Trip tidak ditemukan.'}</p>
+      </div>
+    )
+  }
+
+  const totalPrice = (trip.price + 50_000) * pax
+  const downPayment = Math.round(totalPrice * 0.3)
 
   if (step === 3) {
     return (
