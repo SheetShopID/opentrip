@@ -161,7 +161,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
                   <span className="flex items-center gap-1">
                     <Star size={14} className="fill-[#F59E0B] text-[#F59E0B]" />
                     <strong className="text-[#0A1F44]">{trip.rating}</strong>
-                    <span>(0 ulasan)</span>
+                    <span>({trip.reviews} ulasan)</span>
                   </span>
                 </div>
               </div>
