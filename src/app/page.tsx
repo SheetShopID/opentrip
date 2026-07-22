@@ -1,13 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Search, Calendar, Users, ArrowRight,
   Star, Shield, Headphones, Award, MapPin, TrendingUp,
   Play
 } from 'lucide-react'
 import TripCard from '@/components/TripCard'
-import { TRIPS, DESTINATIONS } from '@/data/trips'
+import { fetchTrips, fetchDestinations, type Trip, type Destination } from '@/data/trips'
 import { useAppNavigate } from '@/hooks/useAppNavigate'
 
 const CATEGORIES = ['Semua', 'Open Trip', 'Private Tour', 'Diving', 'Trekking', 'Budaya', 'Honeymoon']
@@ -74,7 +74,29 @@ export default function LandingPage() {
   const [activeCategory, setActiveCategory] = useState('Semua')
   const [searchQuery, setSearchQuery] = useState('')
 
-  const filteredTrips = TRIPS.slice(0, 8).filter((t) => {
+  const [trips, setTrips] = useState<Trip[]>([])
+  const [destinations, setDestinations] = useState<Destination[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([fetchTrips(), fetchDestinations()])
+      .then(([tripsData, destData]) => {
+        if (cancelled) return
+        setTrips(tripsData)
+        setDestinations(destData)
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err instanceof Error ? err.message : 'Gagal memuat data.')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => { cancelled = true }
+  }, [])
+
+  const filteredTrips = trips.slice(0, 8).filter((t) => {
     const catMatch = activeCategory === 'Semua' || t.category === activeCategory
     const qMatch = !searchQuery || t.title.toLowerCase().includes(searchQuery.toLowerCase())
     return catMatch && qMatch
@@ -208,28 +230,34 @@ export default function LandingPage() {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {DESTINATIONS.map((dest, i) => (
-            <button
-              key={dest.id}
-              onClick={() => onNavigate('search')}
-              className={`group relative overflow-hidden rounded-2xl cursor-pointer ${i === 0 ? 'col-span-2 row-span-2' : ''}`}
-              style={{ aspectRatio: i === 0 ? '1' : '3/4' }}
-            >
-              <img
-                src={dest.image}
-                alt={dest.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-              <div className="absolute bottom-0 left-0 right-0 p-4">
-                <p className="text-white font-semibold text-sm leading-tight">{dest.name}</p>
-                <p className="text-white/70 text-xs mt-0.5">{dest.tripCount} trip tersedia</p>
-              </div>
-              <div className="absolute inset-0 border-2 border-white/0 group-hover:border-white/30 rounded-2xl transition-colors duration-300" />
-            </button>
-          ))}
-        </div>
+        {loading ? (
+          <div className="py-12 text-center text-sm text-[#6B7280]">Memuat destinasi...</div>
+        ) : error ? (
+          <div className="py-12 text-center text-sm text-red-500">{error}</div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            {destinations.map((dest, i) => (
+              <button
+                key={dest.id}
+                onClick={() => onNavigate('search')}
+                className={`group relative overflow-hidden rounded-2xl cursor-pointer ${i === 0 ? 'col-span-2 row-span-2' : ''}`}
+                style={{ aspectRatio: i === 0 ? '1' : '3/4' }}
+              >
+                <img
+                  src={dest.image}
+                  alt={dest.name}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-108"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="text-white font-semibold text-sm leading-tight">{dest.name}</p>
+                  <p className="text-white/70 text-xs mt-0.5">{dest.tripCount} trip tersedia</p>
+                </div>
+                <div className="absolute inset-0 border-2 border-white/0 group-hover:border-white/30 rounded-2xl transition-colors duration-300" />
+              </button>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ─── TRIPS ─── */}
@@ -264,15 +292,21 @@ export default function LandingPage() {
           ))}
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-          {filteredTrips.map((trip) => (
-            <TripCard
-              key={trip.id}
-              trip={trip}
-              onClick={() => onNavigate('detail', trip.id)}
-            />
-          ))}
-        </div>
+        {loading ? (
+          <div className="py-12 text-center text-sm text-[#6B7280]">Memuat trip...</div>
+        ) : error ? (
+          <div className="py-12 text-center text-sm text-red-500">{error}</div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            {filteredTrips.map((trip) => (
+              <TripCard
+                key={trip.id}
+                trip={trip}
+                onClick={() => onNavigate('detail', trip.id)}
+              />
+            ))}
+          </div>
+        )}
       </section>
 
       {/* ─── FEATURES ─── */}
