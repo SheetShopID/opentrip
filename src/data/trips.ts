@@ -1,161 +1,105 @@
 import type { Trip } from '@/components/TripCard'
 
-export const TRIPS: Trip[] = [
-  {
-    id: 1,
-    title: 'Raja Ampat Open Trip — Surga Bawah Laut Papua Barat',
-    location: 'Raja Ampat, Papua Barat',
-    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop&auto=format',
-    price: 4_200_000,
-    originalPrice: 5_500_000,
-    rating: 4.9,
-    reviews: 312,
-    duration: '5D4N',
-    groupSize: 'Maks. 12 orang',
-    category: 'Open Trip',
-    badge: 'Best Seller',
-    highlights: ['Snorkeling di Misool', 'Diving Wayag', 'Sunset di Piaynemo', 'Homestay lokal', 'Fast boat transfer'],
-  },
-  {
-    id: 2,
-    title: 'Labuan Bajo & Komodo Island Exclusive Open Trip',
-    location: 'Labuan Bajo, NTT',
-    image: 'https://images.unsplash.com/photo-1604999333679-b86d54738315?w=800&h=600&fit=crop&auto=format',
-    price: 3_100_000,
-    rating: 4.8,
-    reviews: 486,
-    duration: '4D3N',
-    groupSize: 'Maks. 15 orang',
-    category: 'Open Trip',
-    badge: 'Populer',
-    highlights: ['Lihat Komodo dragon', 'Pink Beach', 'Padar Island', 'Kapal phinisi', 'Snorkeling'],
-  },
-  {
-    id: 3,
-    title: 'Bali Spiritual Journey — Ubud, Tanah Lot & Seminyak',
-    location: 'Ubud, Bali',
-    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=800&h=600&fit=crop&auto=format',
-    price: 1_850_000,
-    originalPrice: 2_200_000,
-    rating: 4.7,
-    reviews: 892,
-    duration: '3D2N',
-    groupSize: 'Maks. 20 orang',
-    category: 'Open Trip',
-    highlights: ['Tegallalang Rice Terrace', 'Tanah Lot sunset', 'Ubud Market', 'Seminyak beach club'],
-  },
-  {
-    id: 4,
-    title: 'Lombok & Rinjani Trekking Open Trip Premium',
-    location: 'Lombok, NTB',
-    image: 'https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=800&h=600&fit=crop&auto=format',
-    price: 2_750_000,
-    rating: 4.9,
-    reviews: 204,
-    duration: '4D3N',
-    groupSize: 'Maks. 10 orang',
-    category: 'Open Trip',
-    badge: 'Adventure',
-    highlights: ['Summit Rinjani 3726m', 'Danau Segara Anak', 'Air terjun Sendang Gile', 'Gili Islands'],
-  },
-  {
-    id: 5,
-    title: 'Borobudur Sunrise & Prambanan Heritage Tour',
-    location: 'Yogyakarta, Jawa Tengah',
-    image: 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=800&h=600&fit=crop&auto=format',
-    price: 950_000,
-    originalPrice: 1_200_000,
-    rating: 4.6,
-    reviews: 1240,
-    duration: '2D1N',
-    groupSize: 'Maks. 25 orang',
-    category: 'Open Trip',
-    highlights: ['Borobudur sunrise', 'Prambanan temple', 'Malioboro street', 'Kraton Yogya'],
-  },
-  {
-    id: 6,
-    title: 'Flores Overland — Danau Kelimutu & Wae Rebo Village',
-    location: 'Ende, Flores, NTT',
-    image: 'https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=800&h=600&fit=crop&auto=format',
-    price: 3_600_000,
-    rating: 4.8,
-    reviews: 134,
-    duration: '5D4N',
-    groupSize: 'Maks. 12 orang',
-    category: 'Open Trip',
-    badge: 'Off The Beaten Path',
-  },
-  {
-    id: 7,
-    title: 'Belitung Island Open Trip — White Sand & Clear Blue Sea',
-    location: 'Belitung, Kepulauan Bangka Belitung',
-    image: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTWN8Omn6Pn7q8c4CreJTIQaoji-AJXjfWpUOOZGNAeKVtpP2h2g_mGzbuL&s=10',
-    price: 1_650_000,
-    rating: 4.7,
-    reviews: 376,
-    duration: '3D2N',
-    groupSize: 'Maks. 18 orang',
-    category: 'Open Trip',
-    highlights: ['Tanjung Tinggi Beach', 'Pulau Lengkuas lighthouse', 'Batu Berlayar', 'Island hopping'],
-  },
-  {
-    id: 8,
-    title: 'Derawan Islands & Maratua Diving Paradise',
-    location: 'Derawan, Kalimantan Timur',
-    image: 'https://images.unsplash.com/photo-1530053969600-caed2596d242?w=800&h=600&fit=crop&auto=format',
-    price: 3_900_000,
-    originalPrice: 4_800_000,
-    rating: 4.9,
-    reviews: 89,
-    duration: '5D4N',
-    groupSize: 'Maks. 10 orang',
-    category: 'Open Trip',
-    badge: 'Limited',
-    highlights: ['Swimming with manta rays', 'Turtle sanctuary', 'Jellyfish lake', 'Diving Maratua'],
-  },
-]
+export type { Trip }
 
-export const DESTINATIONS = [
-  {
-    id: 1,
-    name: 'Raja Ampat',
-    province: 'Papua Barat',
-    image: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=600&h=800&fit=crop&auto=format',
-    tripCount: 24,
-  },
-  {
-    id: 2,
-    name: 'Labuan Bajo',
-    province: 'Nusa Tenggara Timur',
-    image: 'https://images.unsplash.com/photo-1604999333679-b86d54738315?w=600&h=800&fit=crop&auto=format',
-    tripCount: 18,
-  },
-  {
-    id: 3,
-    name: 'Bali',
-    province: 'Bali',
-    image: 'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=600&h=800&fit=crop&auto=format',
-    tripCount: 52,
-  },
-  {
-    id: 4,
-    name: 'Lombok',
-    province: 'Nusa Tenggara Barat',
-    image: 'https://images.unsplash.com/photo-1508193638397-1c4234db14d8?w=600&h=800&fit=crop&auto=format',
-    tripCount: 31,
-  },
-  {
-    id: 5,
-    name: 'Yogyakarta',
-    province: 'Daerah Istimewa Yogyakarta',
-    image: 'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=600&h=800&fit=crop&auto=format',
-    tripCount: 45,
-  },
-  {
-    id: 6,
-    name: 'Flores',
-    province: 'Nusa Tenggara Timur',
-    image: 'https://images.unsplash.com/photo-1564415637254-92c66292cd64?w=600&h=800&fit=crop&auto=format',
-    tripCount: 16,
-  },
-]
+// Set this in .env.local — the Apps Script Web App /exec URL from Code.gs
+const API_URL = process.env.NEXT_PUBLIC_API_URL
+
+export interface ItineraryDay {
+  day: number
+  title: string
+  activities: string[]
+}
+
+export interface InfoCard {
+  icon: string // lucide-react icon name, mapped in the UI — see TripDetailPage.tsx
+  label: string
+  value: string
+}
+
+export interface DepartureDate {
+  date: string
+  slots: number
+  status: 'available' | 'limited' | 'full'
+}
+
+export interface Review {
+  name: string
+  avatar: string
+  date: string
+  rating: number
+  text: string
+  trip: string
+}
+
+export interface TripDetail extends Trip {
+  description: string[]
+  gallery: string[]
+  itinerary: ItineraryDay[]
+  inclusions: string[]
+  exclusions: string[]
+  departureDates: DepartureDate[]
+  reviews: Review[]
+  infoCards: InfoCard[]
+}
+
+export interface Destination {
+  id: number
+  name: string
+  province: string
+  image: string
+  tripCount: number
+}
+
+interface ApiError {
+  error: string
+}
+
+// In-memory cache — cleared on full page reload. Avoids re-fetching the
+// same trip/list repeatedly as the user navigates around in one session.
+let tripsCache: Trip[] | null = null
+let destinationsCache: Destination[] | null = null
+const tripDetailCache = new Map<number, TripDetail>()
+
+async function apiGet<T>(params: Record<string, string>): Promise<T> {
+  if (!API_URL) {
+    throw new Error(
+      'NEXT_PUBLIC_API_URL is not set. Point it at your deployed Apps Script /exec URL (see Code.gs).'
+    )
+  }
+  const url = `${API_URL}?${new URLSearchParams(params).toString()}`
+  const res = await fetch(url)
+  if (!res.ok) {
+    throw new Error(`Trips API request failed (${res.status})`)
+  }
+  const data = (await res.json()) as T | ApiError
+  if (data && typeof data === 'object' && 'error' in data) {
+    throw new Error((data as ApiError).error)
+  }
+  return data as T
+}
+
+/** Full trip list — used by the landing page, search results, and related trips. */
+export async function fetchTrips(): Promise<Trip[]> {
+  if (tripsCache) return tripsCache
+  const data = await apiGet<Trip[]>({ action: 'trips' })
+  tripsCache = data
+  return data
+}
+
+/** Full detail for one trip, including itinerary/reviews/gallery/etc. */
+export async function fetchTripDetail(id: number): Promise<TripDetail> {
+  const cached = tripDetailCache.get(id)
+  if (cached) return cached
+  const data = await apiGet<TripDetail>({ action: 'trip', id: String(id) })
+  tripDetailCache.set(id, data)
+  return data
+}
+
+/** Destination grid on the landing page. */
+export async function fetchDestinations(): Promise<Destination[]> {
+  if (destinationsCache) return destinationsCache
+  const data = await apiGet<Destination[]>({ action: 'destinations' })
+  destinationsCache = data
+  return data
+}
