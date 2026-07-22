@@ -39,7 +39,8 @@ export interface TripDetail extends Trip {
   inclusions: string[]
   exclusions: string[]
   departureDates: DepartureDate[]
-  reviews: Review[]
+  reviewList: Review[]
+
   infoCards: InfoCard[]
 }
 
