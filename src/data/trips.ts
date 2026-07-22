@@ -3,7 +3,7 @@ import type { Trip } from '@/components/TripCard'
 export type { Trip }
 
 // Set this in .env.local — the Apps Script Web App /exec URL from Code.gs
-const API_URL = process.env.NEXT_PUBLIC_TRIPS_API_URL
+const API_URL = process.env.NEXT_PUBLIC_API_URL
 
 export interface ItineraryDay {
   day: number
@@ -64,7 +64,7 @@ const tripDetailCache = new Map<number, TripDetail>()
 async function apiGet<T>(params: Record<string, string>): Promise<T> {
   if (!API_URL) {
     throw new Error(
-      'NEXT_PUBLIC_TRIPS_API_URL is not set. Point it at your deployed Apps Script /exec URL (see Code.gs).'
+      'NEXT_PUBLIC_API_URL is not set. Point it at your deployed Apps Script /exec URL (see Code.gs).'
     )
   }
   const url = `${API_URL}?${new URLSearchParams(params).toString()}`
