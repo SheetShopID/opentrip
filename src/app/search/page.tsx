@@ -1,12 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Search, SlidersHorizontal, ChevronDown, X, MapPin,
   Grid3X3, List, ArrowUpDown
 } from 'lucide-react'
 import TripCard from '@/components/TripCard'
-import { TRIPS } from '@/data/trips'
+import { fetchTrips, type Trip } from '@/data/trips'
 import { useAppNavigate } from '@/hooks/useAppNavigate'
 
 const DURATIONS = ['Semua', '1-2 Hari', '3-4 Hari', '5-7 Hari', '7+ Hari']
@@ -15,6 +15,11 @@ const SORT_OPTIONS = ['Paling Populer', 'Harga Terendah', 'Harga Tertinggi', 'Ra
 
 export default function SearchPage() {
   const onNavigate = useAppNavigate()
+
+  const [trips, setTrips] = useState<Trip[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   const [query, setQuery] = useState('')
   const [selectedDest] = useState('Semua Destinasi')
   const [selectedDuration, setSelectedDuration] = useState('Semua')
@@ -24,13 +29,22 @@ export default function SearchPage() {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid')
   const [showFilters, setShowFilters] = useState(false)
 
+  useEffect(() => {
+    let cancelled = false
+    fetchTrips()
+      .then((data) => { if (!cancelled) setTrips(data) })
+      .catch((err) => { if (!cancelled) setError(err instanceof Error ? err.message : 'Gagal memuat trip.') })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
+
   const toggleCategory = (cat: string) => {
     setSelectedCategories((prev) =>
       prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
     )
   }
 
-  const filteredTrips = TRIPS.filter((t) => {
+  const filteredTrips = trips.filter((t) => {
     const qMatch = !query || t.title.toLowerCase().includes(query.toLowerCase()) || t.location.toLowerCase().includes(query.toLowerCase())
     const catMatch = selectedCategories.length === 0 || selectedCategories.includes(t.category)
     const priceMatch = t.price >= priceRange[0] && t.price <= priceRange[1]
@@ -163,142 +177,150 @@ export default function SearchPage() {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-8 py-8">
-        {/* Results header */}
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h1 className="text-xl font-bold text-[#0A1F44]">
-              {filteredTrips.length} Trip Ditemukan
-            </h1>
-            <p className="text-sm text-[#6B7280] mt-0.5">
-              {query ? `Hasil pencarian untuk "${query}"` : 'Semua open trip tersedia'}
-            </p>
-          </div>
-          <div className="flex items-center gap-3">
-            {/* Sort */}
-            <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#E5EEFF] rounded-xl">
-              <ArrowUpDown size={14} className="text-[#9CA3AF]" />
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="text-sm text-[#374151] bg-transparent outline-none cursor-pointer"
-              >
-                {SORT_OPTIONS.map((o) => <option key={o}>{o}</option>)}
-              </select>
-            </div>
-
-            {/* View mode */}
-            <div className="flex items-center gap-1 p-1 bg-white border border-[#E5EEFF] rounded-xl">
-              <button
-                onClick={() => setViewMode('grid')}
-                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-[#1A56DB] text-white' : 'text-[#9CA3AF] hover:text-[#374151]'}`}
-              >
-                <Grid3X3 size={15} />
-              </button>
-              <button
-                onClick={() => setViewMode('list')}
-                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-[#1A56DB] text-white' : 'text-[#9CA3AF] hover:text-[#374151]'}`}
-              >
-                <List size={15} />
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Active filter chips */}
-        {selectedCategories.length > 0 && (
-          <div className="flex items-center gap-2 mb-6 flex-wrap">
-            <span className="text-xs text-[#6B7280]">Filter aktif:</span>
-            {selectedCategories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => toggleCategory(cat)}
-                className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-xs font-medium text-[#1A56DB] hover:bg-[#DBEAFE] transition-colors"
-              >
-                {cat}
-                <X size={11} />
-              </button>
-            ))}
-            <button
-              onClick={() => setSelectedCategories([])}
-              className="text-xs text-[#9CA3AF] hover:text-[#374151] transition-colors"
-            >
-              Hapus semua
-            </button>
-          </div>
-        )}
-
-        {/* Trip grid */}
-        {viewMode === 'grid' ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filteredTrips.map((trip) => (
-              <TripCard
-                key={trip.id}
-                trip={trip}
-                onClick={() => onNavigate('detail', trip.id)}
-              />
-            ))}
-          </div>
+        {loading ? (
+          <div className="py-24 text-center text-sm text-[#6B7280]">Memuat trip...</div>
+        ) : error ? (
+          <div className="py-24 text-center text-sm text-red-500">{error}</div>
         ) : (
-          <div className="flex flex-col gap-4">
-            {filteredTrips.map((trip) => (
-              <div
-                key={trip.id}
-                onClick={() => onNavigate('detail', trip.id)}
-                className="bg-white border border-[#E5EEFF] rounded-2xl overflow-hidden flex cursor-pointer hover:border-[#1A56DB]/30 hover:shadow-lg transition-all duration-200 group"
-              >
-                <div className="w-64 h-44 shrink-0 overflow-hidden bg-[#E0F2FE]">
-                  <img
-                    src={trip.image}
-                    alt={trip.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
+          <>
+            {/* Results header */}
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h1 className="text-xl font-bold text-[#0A1F44]">
+                  {filteredTrips.length} Trip Ditemukan
+                </h1>
+                <p className="text-sm text-[#6B7280] mt-0.5">
+                  {query ? `Hasil pencarian untuk "${query}"` : 'Semua open trip tersedia'}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                {/* Sort */}
+                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#E5EEFF] rounded-xl">
+                  <ArrowUpDown size={14} className="text-[#9CA3AF]" />
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="text-sm text-[#374151] bg-transparent outline-none cursor-pointer"
+                  >
+                    {SORT_OPTIONS.map((o) => <option key={o}>{o}</option>)}
+                  </select>
                 </div>
-                <div className="flex-1 p-5 flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-xs font-semibold text-[#1A56DB]">{trip.category}</span>
-                      {trip.badge && (
-                        <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-[#EFF6FF] text-[#1A56DB]">
-                          {trip.badge}
-                        </span>
-                      )}
-                    </div>
-                    <h3 className="font-semibold text-[#0A1F44] text-base mb-2">{trip.title}</h3>
-                    <div className="flex items-center gap-1 text-xs text-[#6B7280]">
-                      <MapPin size={12} />
-                      {trip.location}
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between pt-3 border-t border-[#E5EEFF]">
-                    <div className="flex items-center gap-4 text-xs text-[#6B7280]">
-                      <span>⏱ {trip.duration}</span>
-                      <span>👥 {trip.groupSize}</span>
-                      <span>⭐ {trip.rating} ({trip.reviews})</span>
-                    </div>
-                    <div className="text-right">
-                      {trip.originalPrice && (
-                        <p className="text-xs text-[#9CA3AF] line-through">Rp {trip.originalPrice.toLocaleString('id-ID')}</p>
-                      )}
-                      <p className="font-bold text-[#0A1F44]">
-                        Rp {trip.price.toLocaleString('id-ID')}
-                        <span className="text-xs font-normal text-[#6B7280]">/orang</span>
-                      </p>
-                    </div>
-                  </div>
+
+                {/* View mode */}
+                <div className="flex items-center gap-1 p-1 bg-white border border-[#E5EEFF] rounded-xl">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-[#1A56DB] text-white' : 'text-[#9CA3AF] hover:text-[#374151]'}`}
+                  >
+                    <Grid3X3 size={15} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-[#1A56DB] text-white' : 'text-[#9CA3AF] hover:text-[#374151]'}`}
+                  >
+                    <List size={15} />
+                  </button>
                 </div>
               </div>
-            ))}
-          </div>
-        )}
-
-        {filteredTrips.length === 0 && (
-          <div className="text-center py-24">
-            <div className="w-20 h-20 rounded-full bg-[#EFF6FF] flex items-center justify-center mx-auto mb-4">
-              <Search size={32} className="text-[#1A56DB]" />
             </div>
-            <h3 className="font-semibold text-[#0A1F44] text-lg mb-2">Trip tidak ditemukan</h3>
-            <p className="text-sm text-[#6B7280]">Coba kata kunci atau filter yang berbeda</p>
-          </div>
+
+            {/* Active filter chips */}
+            {selectedCategories.length > 0 && (
+              <div className="flex items-center gap-2 mb-6 flex-wrap">
+                <span className="text-xs text-[#6B7280]">Filter aktif:</span>
+                {selectedCategories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => toggleCategory(cat)}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EFF6FF] border border-[#BFDBFE] text-xs font-medium text-[#1A56DB] hover:bg-[#DBEAFE] transition-colors"
+                  >
+                    {cat}
+                    <X size={11} />
+                  </button>
+                ))}
+                <button
+                  onClick={() => setSelectedCategories([])}
+                  className="text-xs text-[#9CA3AF] hover:text-[#374151] transition-colors"
+                >
+                  Hapus semua
+                </button>
+              </div>
+            )}
+
+            {/* Trip grid */}
+            {viewMode === 'grid' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {filteredTrips.map((trip) => (
+                  <TripCard
+                    key={trip.id}
+                    trip={trip}
+                    onClick={() => onNavigate('detail', trip.id)}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                {filteredTrips.map((trip) => (
+                  <div
+                    key={trip.id}
+                    onClick={() => onNavigate('detail', trip.id)}
+                    className="bg-white border border-[#E5EEFF] rounded-2xl overflow-hidden flex cursor-pointer hover:border-[#1A56DB]/30 hover:shadow-lg transition-all duration-200 group"
+                  >
+                    <div className="w-64 h-44 shrink-0 overflow-hidden bg-[#E0F2FE]">
+                      <img
+                        src={trip.image}
+                        alt={trip.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                    <div className="flex-1 p-5 flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1.5">
+                          <span className="text-xs font-semibold text-[#1A56DB]">{trip.category}</span>
+                          {trip.badge && (
+                            <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-[#EFF6FF] text-[#1A56DB]">
+                              {trip.badge}
+                            </span>
+                          )}
+                        </div>
+                        <h3 className="font-semibold text-[#0A1F44] text-base mb-2">{trip.title}</h3>
+                        <div className="flex items-center gap-1 text-xs text-[#6B7280]">
+                          <MapPin size={12} />
+                          {trip.location}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between pt-3 border-t border-[#E5EEFF]">
+                        <div className="flex items-center gap-4 text-xs text-[#6B7280]">
+                          <span>⏱ {trip.duration}</span>
+                          <span>👥 {trip.groupSize}</span>
+                          <span>⭐ {trip.rating} ({trip.reviews})</span>
+                        </div>
+                        <div className="text-right">
+                          {trip.originalPrice && (
+                            <p className="text-xs text-[#9CA3AF] line-through">Rp {trip.originalPrice.toLocaleString('id-ID')}</p>
+                          )}
+                          <p className="font-bold text-[#0A1F44]">
+                            Rp {trip.price.toLocaleString('id-ID')}
+                            <span className="text-xs font-normal text-[#6B7280]">/orang</span>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {filteredTrips.length === 0 && (
+              <div className="text-center py-24">
+                <div className="w-20 h-20 rounded-full bg-[#EFF6FF] flex items-center justify-center mx-auto mb-4">
+                  <Search size={32} className="text-[#1A56DB]" />
+                </div>
+                <h3 className="font-semibold text-[#0A1F44] text-lg mb-2">Trip tidak ditemukan</h3>
+                <p className="text-sm text-[#6B7280]">Coba kata kunci atau filter yang berbeda</p>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
