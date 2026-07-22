@@ -161,7 +161,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
                   <span className="flex items-center gap-1">
                     <Star size={14} className="fill-[#F59E0B] text-[#F59E0B]" />
                     <strong className="text-[#0A1F44]">{trip.rating}</strong>
-                    <span>({trip.reviews.length} ulasan)</span>
+                    <span>({trip.reviews} ulasan)</span>
                   </span>
                 </div>
               </div>
@@ -184,7 +184,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
                 { key: 'overview', label: 'Overview' },
                 { key: 'itinerary', label: 'Itinerary' },
                 { key: 'include', label: 'Termasuk' },
-                { key: 'reviews', label: `Ulasan (${trip.reviews.length})` },
+                { key: 'reviews', label: `Ulasan (${trip.reviews})` },
               ] as const).map((tab) => (
                 <button
                   key={tab.key}
@@ -337,7 +337,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
                         <Star key={i} size={16} className={i < Math.floor(trip.rating) ? 'fill-[#F59E0B] text-[#F59E0B]' : 'text-[#D1D5DB]'} />
                       ))}
                     </div>
-                    <p className="text-xs text-[#6B7280]">{trip.reviews.length} ulasan</p>
+                    <p className="text-xs text-[#6B7280]">{trip.reviews} ulasan</p>
                   </div>
                   <div className="flex-1 space-y-1.5">
                     {[5, 4, 3, 2, 1].map((n) => (
@@ -416,7 +416,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
                 <div className="flex items-center gap-1 mt-2">
                   <Star size={14} className="fill-[#F59E0B] text-[#F59E0B]" />
                   <span className="text-sm font-semibold text-[#0A1F44]">{trip.rating}</span>
-                  <span className="text-sm text-[#9CA3AF]">({trip.reviews.length} ulasan)</span>
+                  <span className="text-sm text-[#9CA3AF]">({trip.reviews} ulasan)</span>
                 </div>
               </div>
 
