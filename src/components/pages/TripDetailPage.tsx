@@ -354,7 +354,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
                   </div>
                 </div>
 
-                {trip.reviews.map((r) => (
+                {trip.reviewList.map((r) => (
                   <div key={r.name} className="bg-white rounded-2xl p-5 border border-[#E5EEFF]">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
