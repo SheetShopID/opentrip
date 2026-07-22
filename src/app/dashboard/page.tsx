@@ -1,21 +1,23 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   LayoutDashboard, BookOpen, Heart, Settings, Bell, LogOut,
   MapPin, Clock, Users, Star, ChevronRight, TrendingUp,
   CheckCircle2, XCircle, AlertCircle, Calendar, Download,
   Camera, Edit3, Globe
 } from 'lucide-react'
-import { TRIPS } from '@/data/trips'
+import { fetchTrips, type Trip } from '@/data/trips'
 import { useAppNavigate } from '@/hooks/useAppNavigate'
 
 type DashboardTab = 'overview' | 'bookings' | 'wishlist' | 'settings'
 
+// Mock booking history — references trips by id instead of embedding the
+// trip object directly, since the trip list is now fetched at runtime.
 const BOOKINGS = [
   {
     id: 'OT-2025-84321',
-    trip: TRIPS[0],
+    tripId: 1,
     date: '14 Mar 2025',
     pax: 2,
     status: 'confirmed',
@@ -25,7 +27,7 @@ const BOOKINGS = [
   },
   {
     id: 'OT-2025-71204',
-    trip: TRIPS[1],
+    tripId: 2,
     date: '28 Feb 2025',
     pax: 1,
     status: 'pending',
@@ -35,7 +37,7 @@ const BOOKINGS = [
   },
   {
     id: 'OT-2024-55891',
-    trip: TRIPS[4],
+    tripId: 5,
     date: '22 Des 2024',
     pax: 3,
     status: 'completed',
@@ -45,7 +47,7 @@ const BOOKINGS = [
   },
   {
     id: 'OT-2024-43102',
-    trip: TRIPS[2],
+    tripId: 3,
     date: '15 Nov 2024',
     pax: 2,
     status: 'completed',
@@ -83,8 +85,43 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<DashboardTab>('overview')
   const [filterStatus, setFilterStatus] = useState<string>('all')
 
-  const wishlistTrips = TRIPS.filter((t) => WISHLIST_IDS.includes(t.id))
-  const filteredBookings = BOOKINGS.filter((b) => filterStatus === 'all' || b.status === filterStatus)
+  const [trips, setTrips] = useState<Trip[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetchTrips()
+      .then((data) => { if (!cancelled) setTrips(data) })
+      .catch((err) => { if (!cancelled) setError(err instanceof Error ? err.message : 'Gagal memuat trip.') })
+      .finally(() => { if (!cancelled) setLoading(false) })
+    return () => { cancelled = true }
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="bg-[#F8FAFF] min-h-screen flex items-center justify-center">
+        <p className="text-sm text-[#6B7280]">Memuat dashboard...</p>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="bg-[#F8FAFF] min-h-screen flex items-center justify-center">
+        <p className="text-sm text-red-500">{error}</p>
+      </div>
+    )
+  }
+
+  const tripsById = new Map(trips.map((t) => [t.id, t]))
+  const wishlistTrips = trips.filter((t) => WISHLIST_IDS.includes(t.id))
+  // Bookings whose trip is still in the fetched list (guards against a
+  // stale tripId if a trip is ever removed from the sheet).
+  const bookingsWithTrip = BOOKINGS
+    .map((b) => ({ ...b, trip: tripsById.get(b.tripId) }))
+    .filter((b): b is typeof b & { trip: Trip } => Boolean(b.trip))
+  const filteredBookings = bookingsWithTrip.filter((b) => filterStatus === 'all' || b.status === filterStatus)
 
   return (
     <div className="bg-[#F8FAFF] min-h-screen">
@@ -211,7 +248,7 @@ export default function DashboardPage() {
                 {/* Upcoming trip */}
                 <div>
                   <h2 className="font-semibold text-[#0A1F44] mb-4">Trip Mendatang</h2>
-                  {BOOKINGS.filter((b) => b.status === 'confirmed' || b.status === 'pending').map((booking) => {
+                  {bookingsWithTrip.filter((b) => b.status === 'confirmed' || b.status === 'pending').map((booking) => {
                     const StatusIcon = STATUS_CONFIG[booking.status as keyof typeof STATUS_CONFIG].icon
                     return (
                       <div
