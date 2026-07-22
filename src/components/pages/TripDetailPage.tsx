@@ -1,58 +1,33 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Heart, Share2, Star, MapPin, Clock, Users, CheckCircle2,
   ChevronDown, ChevronUp, Camera, Utensils, Shield, Info,
-  ChevronLeft, ChevronRight, Calendar
-} from 'lucide-react'  
+  ChevronLeft, ChevronRight, Calendar, type LucideIcon,
+} from 'lucide-react'
+import { fetchTrips, fetchTripDetail, type Trip, type TripDetail } from '@/data/trips'
+import TripCard from '@/components/TripCard'
 import { useAppNavigate } from '@/hooks/useAppNavigate'
-import TripCard, { Trip } from '@/components/TripCard'
 
-interface ItineraryDay {
-  day: number
-  title: string
-  activities: string[]
-}
-
-interface DepartureDate {
-  date: string
-  status: 'available' | 'limited' | 'full'
-  slots: number
-}
-
-interface Review {
-  name: string
-  avatar: string
-  trip: string
-  date: string
-  rating: number
-  text: string
-}
-
-interface TripDetail extends Trip {
-  image: string
-  gallery: string[]
-  highlights: string[]
-  itinerary: ItineraryDay[]
-  inclusions: string[]
-  exclusions: string[]
-  departureDates: DepartureDate[]
-  reviewsData: Review[]
-}
 interface TripDetailPageProps {
-  trip: TripDetail
+  tripId: number
 }
-export default function TripDetailPage({ trip }: TripDetailPageProps) {
-  const ITINERARY = trip.itinerary ?? []
-  const INCLUSIONS = trip.inclusions ?? []
-  const EXCLUSIONS = trip.exclusions ?? []
-  const DEPARTURE_DATES = trip.departureDates ?? []
-  const REVIEWS = trip.reviewsData ?? []
-  const GALLERY = trip.gallery ?? []
-  
+
+// Maps the icon *name* stored in the TripInfoCards sheet to an actual
+// lucide-react component. Add to this map if new icon names are used.
+const ICON_MAP: Record<string, LucideIcon> = {
+  Utensils, Shield, Camera, Users,
+}
+
+export default function TripDetailPage({ tripId }: TripDetailPageProps) {
   const onNavigate = useAppNavigate()
-  
+
+  const [trip, setTrip] = useState<TripDetail | null>(null)
+  const [allTrips, setAllTrips] = useState<Trip[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
   const [liked, setLiked] = useState(false)
   const [expandedDay, setExpandedDay] = useState<number | null>(1)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
@@ -60,7 +35,50 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'include' | 'reviews'>('overview')
   const [pax, setPax] = useState(1)
 
-  const relatedTrips: Trip[] = []
+  useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(null)
+    setGalleryIdx(0)
+    setExpandedDay(1)
+    setSelectedDate(null)
+    setActiveTab('overview')
+
+    Promise.all([fetchTripDetail(tripId), fetchTrips()])
+      .then(([detail, trips]) => {
+        if (cancelled) return
+        setTrip(detail)
+        setAllTrips(trips)
+      })
+      .catch((err) => {
+        if (cancelled) return
+        setError(err instanceof Error ? err.message : 'Gagal memuat data trip.')
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+
+    return () => { cancelled = true }
+  }, [tripId])
+
+  if (loading) {
+    return (
+      <div className="bg-[#F8FAFF] min-h-screen flex items-center justify-center">
+        <p className="text-sm text-[#6B7280]">Memuat trip...</p>
+      </div>
+    )
+  }
+
+  if (error || !trip) {
+    return (
+      <div className="bg-[#F8FAFF] min-h-screen flex items-center justify-center">
+        <p className="text-sm text-red-500">{error || 'Trip tidak ditemukan.'}</p>
+      </div>
+    )
+  }
+
+  const gallery = trip.gallery.length ? trip.gallery : [trip.image]
+  const relatedTrips = allTrips.filter((t) => t.id !== tripId).slice(0, 4)
 
   return (
     <div className="bg-[#F8FAFF] min-h-screen">
@@ -83,7 +101,7 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
             <div className="relative rounded-3xl overflow-hidden bg-[#0A1F44] mb-6 group">
               <div className="relative h-[460px]">
                 <img
-                  src={GALLERY[galleryIdx]}
+                  src={gallery[galleryIdx]}
                   alt={trip.title}
                   className="w-full h-full object-cover transition-opacity duration-300"
                 />
@@ -91,13 +109,13 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
 
                 {/* Controls */}
                 <button
-                  onClick={() => setGalleryIdx((i) => (i - 1 + GALLERY.length) % GALLERY.length)}
+                  onClick={() => setGalleryIdx((i) => (i - 1 + gallery.length) % gallery.length)}
                   className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
                 >
                   <ChevronLeft size={18} className="text-[#0A1F44]" />
                 </button>
                 <button
-                  onClick={() => setGalleryIdx((i) => (i + 1) % GALLERY.length)}
+                  onClick={() => setGalleryIdx((i) => (i + 1) % gallery.length)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
                 >
                   <ChevronRight size={18} className="text-[#0A1F44]" />
@@ -106,13 +124,13 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
                 {/* Photo count */}
                 <div className="absolute bottom-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/50 backdrop-blur-sm text-white text-xs font-medium">
                   <Camera size={12} />
-                  {galleryIdx + 1} / {GALLERY.length}
+                  {galleryIdx + 1} / {gallery.length}
                 </div>
               </div>
 
               {/* Thumbnails */}
               <div className="flex gap-2 p-3">
-                {GALLERY.map((img, i) => (
+                {gallery.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setGalleryIdx(i)}
@@ -189,16 +207,15 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
                   <h3 className="font-semibold text-[#0A1F44] mb-3 flex items-center gap-2">
                     <Info size={16} className="text-[#1A56DB]" /> Tentang Trip Ini
                   </h3>
-                  <p className="text-sm text-[#374151] leading-relaxed">
-                    Rasakan pengalaman luar biasa menjelajahi Raja Ampat, surga bahari yang terletak di ujung kepala burung Papua Barat. Dikenal sebagai salah satu dari 10 perairan terbaik untuk diving dan snorkeling di dunia, Raja Ampat menawarkan keindahan bawah laut yang tak tertandingi dengan keanekaragaman hayati laut yang luar biasa.
-                  </p>
-                  <p className="text-sm text-[#374151] leading-relaxed mt-3">
-                    Open trip kami dirancang untuk memberikan pengalaman autentik sekaligus nyaman. Anda akan ditemani oleh guide lokal berpengalaman yang fasih berbahasa Indonesia dan Inggris, serta fotografer trip yang akan mengabadikan momen terbaik perjalanan Anda.
-                  </p>
+                  {trip.description.map((paragraph, i) => (
+                    <p key={i} className={`text-sm text-[#374151] leading-relaxed ${i > 0 ? 'mt-3' : ''}`}>
+                      {paragraph}
+                    </p>
+                  ))}
                 </div>
 
                 {/* Highlights */}
-                {trip.highlights && (
+                {trip.highlights && trip.highlights.length > 0 && (
                   <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF]">
                     <h3 className="font-semibold text-[#0A1F44] mb-4 flex items-center gap-2">
                       <Star size={16} className="text-[#1A56DB]" /> Trip Highlights
@@ -217,28 +234,28 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
                 )}
 
                 {/* Info cards */}
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                  {[
-                    { icon: Utensils, label: 'Makan', value: '3x Sehari' },
-                    { icon: Shield, label: 'Asuransi', value: 'Tidak Termasuk' },
-                    { icon: Camera, label: 'Foto', value: 'Termasuk' },
-                    { icon: Users, label: 'Min. Pax', value: '4 Orang' },
-                  ].map((item) => (
-                    <div key={item.label} className="bg-white rounded-2xl p-4 border border-[#E5EEFF] text-center">
-                      <div className="w-9 h-9 rounded-xl bg-[#EFF6FF] flex items-center justify-center mx-auto mb-2">
-                        <item.icon size={16} className="text-[#1A56DB]" />
-                      </div>
-                      <p className="text-xs text-[#6B7280] mb-0.5">{item.label}</p>
-                      <p className="text-sm font-semibold text-[#0A1F44]">{item.value}</p>
-                    </div>
-                  ))}
-                </div>
+                {trip.infoCards.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    {trip.infoCards.map((item) => {
+                      const Icon = ICON_MAP[item.icon] ?? Info
+                      return (
+                        <div key={item.label} className="bg-white rounded-2xl p-4 border border-[#E5EEFF] text-center">
+                          <div className="w-9 h-9 rounded-xl bg-[#EFF6FF] flex items-center justify-center mx-auto mb-2">
+                            <Icon size={16} className="text-[#1A56DB]" />
+                          </div>
+                          <p className="text-xs text-[#6B7280] mb-0.5">{item.label}</p>
+                          <p className="text-sm font-semibold text-[#0A1F44]">{item.value}</p>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
             {activeTab === 'itinerary' && (
               <div className="space-y-3">
-                {ITINERARY.map((day) => (
+                {trip.itinerary.map((day) => (
                   <div key={day.day} className="bg-white rounded-2xl border border-[#E5EEFF] overflow-hidden">
                     <button
                       onClick={() => setExpandedDay(expandedDay === day.day ? null : day.day)}
@@ -283,7 +300,7 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
                     <CheckCircle2 size={16} className="text-[#10B981]" /> Termasuk
                   </h3>
                   <div className="space-y-3">
-                    {INCLUSIONS.map((item) => (
+                    {trip.inclusions.map((item) => (
                       <div key={item} className="flex items-start gap-2.5">
                         <CheckCircle2 size={15} className="text-[#10B981] shrink-0 mt-0.5" />
                         <p className="text-sm text-[#374151]">{item}</p>
@@ -296,7 +313,7 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
                     <Info size={16} className="text-[#F59E0B]" /> Tidak Termasuk
                   </h3>
                   <div className="space-y-3">
-                    {EXCLUSIONS.map((item) => (
+                    {trip.exclusions.map((item) => (
                       <div key={item} className="flex items-start gap-2.5">
                         <div className="w-4 h-4 rounded-full border-2 border-[#D1D5DB] shrink-0 mt-0.5 flex items-center justify-center">
                           <div className="w-1.5 h-1.5 rounded-full bg-[#9CA3AF]" />
@@ -337,7 +354,7 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
                   </div>
                 </div>
 
-                {REVIEWS.map((r) => (
+                {trip.reviews.map((r) => (
                   <div key={r.name} className="bg-white rounded-2xl p-5 border border-[#E5EEFF]">
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex items-center gap-3">
@@ -360,14 +377,16 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
             )}
 
             {/* Related trips */}
-            <div className="mt-12">
-              <h2 className="font-display text-2xl font-bold text-[#0A1F44] mb-6">Trip Serupa</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {relatedTrips.map((t) => (
-                  <TripCard key={t.id} trip={t} onClick={() => onNavigate('detail', t.id)} size="sm" />
-                ))}
+            {relatedTrips.length > 0 && (
+              <div className="mt-12">
+                <h2 className="font-display text-2xl font-bold text-[#0A1F44] mb-6">Trip Serupa</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  {relatedTrips.map((t) => (
+                    <TripCard key={t.id} trip={t} onClick={() => onNavigate('detail', t.id)} size="sm" />
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
           {/* ─── Right sticky column — Booking card ─── */}
@@ -408,7 +427,7 @@ export default function TripDetailPage({ trip }: TripDetailPageProps) {
                     <Calendar size={12} /> Pilih Tanggal Keberangkatan
                   </p>
                   <div className="grid grid-cols-2 gap-2">
-                    {DEPARTURE_DATES.map((d) => (
+                    {trip.departureDates.map((d) => (
                       <button
                         key={d.date}
                         disabled={d.status === 'full'}
