@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
   Search, Calendar, Users, ArrowRight,
   Star, Shield, Headphones, Award, MapPin, TrendingUp,
-  Play
+  Play, ChevronLeft, ChevronRight, Minus, Plus
 } from 'lucide-react'
 import TripCard from '@/components/TripCard'
 import { fetchTrips, fetchDestinations, type Trip, type Destination } from '@/data/trips'
@@ -42,6 +42,40 @@ const FEATURES = [
   },
 ]
 
+const MONTHS_ID = [
+  'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+  'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember',
+]
+
+const WEEKDAYS_ID = ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab']
+
+function getCalendarDays(viewDate: Date): (Date | null)[] {
+  const year = viewDate.getFullYear()
+  const month = viewDate.getMonth()
+  const firstWeekday = new Date(year, month, 1).getDay()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  const days: (Date | null)[] = []
+  for (let i = 0; i < firstWeekday; i++) days.push(null)
+  for (let d = 1; d <= daysInMonth; d++) days.push(new Date(year, month, d))
+  return days
+}
+
+function isSameDay(a: Date | null, b: Date | null) {
+  if (!a || !b) return false
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  )
+}
+
+function isBeforeToday(date: Date) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  return date.getTime() < today.getTime()
+}
+
 const TESTIMONIALS = [
   {
     name: 'Sari Dewi',
@@ -78,6 +112,34 @@ export default function LandingPage() {
   const [destinations, setDestinations] = useState<Destination[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Search card: date picker
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [calendarView, setCalendarView] = useState(() => new Date())
+  const [showDatePicker, setShowDatePicker] = useState(false)
+  const dateWrapperRef = useRef<HTMLDivElement>(null)
+
+  // Search card: number of people
+  const [peopleCount, setPeopleCount] = useState(2)
+  const [showPeoplePicker, setShowPeoplePicker] = useState(false)
+  const peopleWrapperRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dateWrapperRef.current && !dateWrapperRef.current.contains(e.target as Node)) {
+        setShowDatePicker(false)
+      }
+      if (peopleWrapperRef.current && !peopleWrapperRef.current.contains(e.target as Node)) {
+        setShowPeoplePicker(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const formattedDate = selectedDate
+    ? `${selectedDate.getDate()} ${MONTHS_ID[selectedDate.getMonth()]} ${selectedDate.getFullYear()}`
+    : null
 
   useEffect(() => {
     let cancelled = false
@@ -159,20 +221,169 @@ export default function LandingPage() {
                 </div>
               </div>
               <div className="w-px bg-[#E5EEFF] hidden md:block my-2" />
-              <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#F8FAFF] transition-colors cursor-pointer">
-                <Calendar size={18} className="text-[#1A56DB] shrink-0" />
-                <div>
-                  <p className="text-xs font-medium text-[#6B7280] mb-0.5">Tanggal</p>
-                  <p className="text-sm font-medium text-[#9CA3AF]">Pilih tanggal</p>
-                </div>
+
+              {/* Date picker */}
+              <div ref={dateWrapperRef} className="relative flex-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowDatePicker((v) => !v)
+                    setShowPeoplePicker(false)
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#F8FAFF] transition-colors cursor-pointer text-left"
+                >
+                  <Calendar size={18} className="text-[#1A56DB] shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-[#6B7280] mb-0.5">Tanggal</p>
+                    <p className={`text-sm font-medium ${formattedDate ? 'text-[#0A1F44]' : 'text-[#9CA3AF]'}`}>
+                      {formattedDate ?? 'Pilih tanggal'}
+                    </p>
+                  </div>
+                </button>
+
+                {showDatePicker && (
+                  <div
+                    className="absolute z-20 top-full left-0 mt-2 w-[300px] bg-white rounded-2xl border border-[#E5EEFF] p-4"
+                    style={{ boxShadow: '0 16px 48px rgba(10,31,68,0.18)' }}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCalendarView((v) => new Date(v.getFullYear(), v.getMonth() - 1, 1))
+                        }
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#F8FAFF] text-[#374151] transition-colors"
+                        aria-label="Bulan sebelumnya"
+                      >
+                        <ChevronLeft size={16} />
+                      </button>
+                      <p className="text-sm font-semibold text-[#0A1F44]">
+                        {MONTHS_ID[calendarView.getMonth()]} {calendarView.getFullYear()}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setCalendarView((v) => new Date(v.getFullYear(), v.getMonth() + 1, 1))
+                        }
+                        className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-[#F8FAFF] text-[#374151] transition-colors"
+                        aria-label="Bulan berikutnya"
+                      >
+                        <ChevronRight size={16} />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-7 gap-1 mb-1">
+                      {WEEKDAYS_ID.map((w) => (
+                        <div key={w} className="text-center text-[11px] font-medium text-[#9CA3AF] py-1">
+                          {w}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-7 gap-1">
+                      {getCalendarDays(calendarView).map((day, i) => {
+                        if (!day) return <div key={`empty-${i}`} />
+                        const disabled = isBeforeToday(day)
+                        const selected = isSameDay(day, selectedDate)
+                        const today = isSameDay(day, new Date())
+                        return (
+                          <button
+                            key={day.toISOString()}
+                            type="button"
+                            disabled={disabled}
+                            onClick={() => {
+                              setSelectedDate(day)
+                              setShowDatePicker(false)
+                            }}
+                            className={`h-9 rounded-lg text-sm font-medium transition-colors ${
+                              disabled
+                                ? 'text-[#D1D5DB] cursor-not-allowed'
+                                : selected
+                                ? 'bg-[#1A56DB] text-white'
+                                : today
+                                ? 'bg-[#EFF6FF] text-[#1A56DB]'
+                                : 'text-[#374151] hover:bg-[#F8FAFF]'
+                            }`}
+                          >
+                            {day.getDate()}
+                          </button>
+                        )
+                      })}
+                    </div>
+
+                    {selectedDate && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedDate(null)
+                          setShowDatePicker(false)
+                        }}
+                        className="mt-3 text-xs font-medium text-[#6B7280] hover:text-[#1A56DB] transition-colors"
+                      >
+                        Hapus tanggal
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
+
               <div className="w-px bg-[#E5EEFF] hidden md:block my-2" />
-              <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#F8FAFF] transition-colors cursor-pointer">
-                <Users size={18} className="text-[#1A56DB] shrink-0" />
-                <div>
-                  <p className="text-xs font-medium text-[#6B7280] mb-0.5">Jumlah Orang</p>
-                  <p className="text-sm font-medium text-[#9CA3AF]">2 orang</p>
-                </div>
+
+              {/* Number of people */}
+              <div ref={peopleWrapperRef} className="relative flex-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPeoplePicker((v) => !v)
+                    setShowDatePicker(false)
+                  }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-[#F8FAFF] transition-colors cursor-pointer text-left"
+                >
+                  <Users size={18} className="text-[#1A56DB] shrink-0" />
+                  <div>
+                    <p className="text-xs font-medium text-[#6B7280] mb-0.5">Jumlah Orang</p>
+                    <p className="text-sm font-medium text-[#0A1F44]">
+                      {peopleCount} orang
+                    </p>
+                  </div>
+                </button>
+
+                {showPeoplePicker && (
+                  <div
+                    className="absolute z-20 top-full left-0 mt-2 w-[240px] bg-white rounded-2xl border border-[#E5EEFF] p-4"
+                    style={{ boxShadow: '0 16px 48px rgba(10,31,68,0.18)' }}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-[#0A1F44]">Jumlah Orang</p>
+                        <p className="text-xs text-[#6B7280]">Termasuk dewasa &amp; anak</p>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setPeopleCount((n) => Math.max(1, n - 1))}
+                          disabled={peopleCount <= 1}
+                          className="w-8 h-8 flex items-center justify-center rounded-full border border-[#E5EEFF] text-[#1A56DB] hover:bg-[#F8FAFF] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          aria-label="Kurangi jumlah orang"
+                        >
+                          <Minus size={14} />
+                        </button>
+                        <span className="w-5 text-center text-sm font-semibold text-[#0A1F44]">
+                          {peopleCount}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setPeopleCount((n) => Math.min(20, n + 1))}
+                          disabled={peopleCount >= 20}
+                          className="w-8 h-8 flex items-center justify-center rounded-full border border-[#E5EEFF] text-[#1A56DB] hover:bg-[#F8FAFF] disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          aria-label="Tambah jumlah orang"
+                        >
+                          <Plus size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
               <button
                 onClick={() => onNavigate('search')}
