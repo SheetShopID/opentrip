@@ -32,6 +32,7 @@ export default function BookingPage({ tripId }: BookingPageProps) {
   const [error, setError] = useState<string | null>(null)
 
   const [step, setStep] = useState(0)
+  const [direction, setDirection] = useState<1 | -1>(1)
   const [pax, setPax] = useState(2)
   const [selectedDate] = useState('14 Mar 2025')
   const [paymentMethod, setPaymentMethod] = useState('transfer')
@@ -76,6 +77,9 @@ export default function BookingPage({ tripId }: BookingPageProps) {
     setForm((prev) => ({ ...prev, [field]: e.target.value }))
   }
 
+  const goNext = () => { setDirection(1); setStep((s) => s + 1) }
+  const goBack = () => { setDirection(-1); setStep((s) => Math.max(0, s - 1)) }
+
   const canProceed = step === 0 ? true
     : step === 1 ? (form.firstName && form.email && form.phone)
     : step === 2 ? agreed
@@ -102,10 +106,20 @@ export default function BookingPage({ tripId }: BookingPageProps) {
 
   if (step === 3) {
     return (
-      <div className="bg-[#F8FAFF] min-h-screen flex items-center justify-center px-8">
-        <div className="max-w-lg w-full text-center">
+      <div className="bg-[#F8FAFF] min-h-screen flex items-center justify-center px-4 sm:px-8 py-10">
+        <style>{`
+          @keyframes bookingSuccessIn {
+            from { opacity: 0; transform: translateY(16px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+          }
+          .booking-success-anim { animation: bookingSuccessIn 0.4s ease-out; }
+          @media (prefers-reduced-motion: reduce) {
+            .booking-success-anim { animation: none; }
+          }
+        `}</style>
+        <div className="max-w-lg w-full text-center booking-success-anim">
           <div
-            className="bg-white rounded-3xl p-12 border border-[#E5EEFF]"
+            className="bg-white rounded-3xl p-6 sm:p-12 border border-[#E5EEFF]"
             style={{ boxShadow: '0 8px 40px rgba(10,31,68,0.10)' }}
           >
             <div className="w-20 h-20 rounded-full bg-[#ECFDF5] flex items-center justify-center mx-auto mb-6">
@@ -168,10 +182,10 @@ export default function BookingPage({ tripId }: BookingPageProps) {
     <div className="bg-[#F8FAFF] min-h-screen">
       {/* Header */}
       <div className="bg-white border-b border-[#E5EEFF] sticky top-16 z-40">
-        <div className="max-w-[1440px] mx-auto px-8 py-4">
-          <div className="flex items-center gap-4 mb-4">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-3 sm:py-4">
+          <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
             <button
-              onClick={() => step > 0 ? setStep((s) => s - 1) : onNavigate('detail', tripId)}
+              onClick={() => step > 0 ? goBack() : onNavigate('detail', tripId)}
               className="flex items-center gap-1.5 text-sm text-[#6B7280] hover:text-[#1A56DB] transition-colors"
             >
               <ArrowLeft size={15} /> Kembali
@@ -180,23 +194,23 @@ export default function BookingPage({ tripId }: BookingPageProps) {
           </div>
 
           {/* Step indicator */}
-          <div className="flex items-center gap-0">
+          <div className="flex items-center gap-0 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
             {STEPS.map((s, i) => (
-              <div key={s} className="flex items-center">
-                <div className="flex items-center gap-2">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${
+              <div key={s} className="flex items-center shrink-0">
+                <div className="flex items-center gap-1.5 sm:gap-2">
+                  <div className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-bold transition-all shrink-0 ${
                     i < step ? 'bg-[#10B981] text-white'
                     : i === step ? 'bg-[#1A56DB] text-white'
                     : 'bg-[#E5EEFF] text-[#9CA3AF]'
                   }`}>
-                    {i < step ? <CheckCircle2 size={14} /> : i + 1}
+                    {i < step ? <CheckCircle2 size={13} /> : i + 1}
                   </div>
                   <span className={`text-xs font-medium hidden sm:block ${i === step ? 'text-[#1A56DB]' : i < step ? 'text-[#10B981]' : 'text-[#9CA3AF]'}`}>
                     {s}
                   </span>
                 </div>
                 {i < STEPS.length - 1 && (
-                  <div className={`w-12 sm:w-20 h-px mx-2 transition-colors ${i < step ? 'bg-[#10B981]' : 'bg-[#E5EEFF]'}`} />
+                  <div className={`w-8 sm:w-20 h-px mx-1.5 sm:mx-2 transition-colors ${i < step ? 'bg-[#10B981]' : 'bg-[#E5EEFF]'}`} />
                 )}
               </div>
             ))}
@@ -204,23 +218,40 @@ export default function BookingPage({ tripId }: BookingPageProps) {
         </div>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-8">
+      <style>{`
+        @keyframes bookingStepInRight {
+          from { opacity: 0; transform: translateX(20px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes bookingStepInLeft {
+          from { opacity: 0; transform: translateX(-20px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        .booking-step-fwd { animation: bookingStepInRight 0.3s ease-out; }
+        .booking-step-back { animation: bookingStepInLeft 0.3s ease-out; }
+        @media (prefers-reduced-motion: reduce) {
+          .booking-step-fwd, .booking-step-back { animation: none; }
+        }
+      `}</style>
+
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 pt-5 sm:pt-8 pb-28 lg:pb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 lg:gap-8">
           {/* Left */}
           <div>
+            <div key={step} className={direction === 1 ? 'booking-step-fwd' : 'booking-step-back'}>
             {/* Step 0: Order detail */}
             {step === 0 && (
               <div className="space-y-4">
-                <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF]">
-                  <h2 className="font-semibold text-[#0A1F44] mb-5">Detail Perjalanan</h2>
-                  <div className="flex gap-5">
-                    <div className="w-32 h-24 rounded-2xl overflow-hidden bg-[#E0F2FE] shrink-0">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5EEFF]">
+                  <h2 className="font-semibold text-[#0A1F44] mb-4 sm:mb-5">Detail Perjalanan</h2>
+                  <div className="flex gap-3 sm:gap-5">
+                    <div className="w-24 h-20 sm:w-32 sm:h-24 rounded-2xl overflow-hidden bg-[#E0F2FE] shrink-0">
                       <img src={trip.image} alt={trip.title} className="w-full h-full object-cover" />
                     </div>
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold text-[#1A56DB] mb-1">{trip.category}</p>
                       <h3 className="font-semibold text-[#0A1F44] mb-2 text-sm">{trip.title}</h3>
-                      <div className="flex flex-wrap gap-3 text-xs text-[#6B7280]">
+                      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-[#6B7280]">
                         <span className="flex items-center gap-1"><MapPin size={11} />{trip.location}</span>
                         <span className="flex items-center gap-1"><Clock size={11} />{trip.duration}</span>
                         <span className="flex items-center gap-1"><Star size={11} className="fill-[#F59E0B] text-[#F59E0B]" />{trip.rating}</span>
@@ -229,8 +260,8 @@ export default function BookingPage({ tripId }: BookingPageProps) {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF]">
-                  <h2 className="font-semibold text-[#0A1F44] mb-5">Detail Pemesanan</h2>
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5EEFF]">
+                  <h2 className="font-semibold text-[#0A1F44] mb-4 sm:mb-5">Detail Pemesanan</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide block mb-2">
@@ -268,8 +299,8 @@ export default function BookingPage({ tripId }: BookingPageProps) {
             {/* Step 1: Traveler info */}
             {step === 1 && (
               <div className="space-y-4">
-                <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF]">
-                  <h2 className="font-semibold text-[#0A1F44] mb-5 flex items-center gap-2">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5EEFF]">
+                  <h2 className="font-semibold text-[#0A1F44] mb-4 sm:mb-5 flex items-center gap-2">
                     <User size={16} className="text-[#1A56DB]" /> Data Pemesan Utama
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -307,8 +338,8 @@ export default function BookingPage({ tripId }: BookingPageProps) {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF]">
-                  <h2 className="font-semibold text-[#0A1F44] mb-5 flex items-center gap-2">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5EEFF]">
+                  <h2 className="font-semibold text-[#0A1F44] mb-4 sm:mb-5 flex items-center gap-2">
                     <Phone size={16} className="text-[#1A56DB]" /> Kontak Darurat
                   </h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -333,8 +364,8 @@ export default function BookingPage({ tripId }: BookingPageProps) {
                   </div>
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF]">
-                  <h2 className="font-semibold text-[#0A1F44] mb-5">Informasi Tambahan (Opsional)</h2>
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5EEFF]">
+                  <h2 className="font-semibold text-[#0A1F44] mb-4 sm:mb-5">Informasi Tambahan (Opsional)</h2>
                   <div className="space-y-4">
                     <div>
                       <label className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide block mb-2">Kebutuhan Diet Khusus</label>
@@ -363,7 +394,7 @@ export default function BookingPage({ tripId }: BookingPageProps) {
             {/* Step 2: Payment */}
             {step === 2 && (
               <div className="space-y-4">
-                <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF]">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5EEFF]">
                   <h2 className="font-semibold text-[#0A1F44] mb-2">Metode Pembayaran</h2>
                   <p className="text-sm text-[#6B7280] mb-5">
                     Bayar DP 30% sekarang, sisa 70% paling lambat 7 hari sebelum trip.
@@ -376,18 +407,18 @@ export default function BookingPage({ tripId }: BookingPageProps) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2 sm:gap-3">
                     {PAYMENT_METHODS.map((m) => (
                       <button
                         key={m.id}
                         onClick={() => setPaymentMethod(m.id)}
-                        className={`p-4 rounded-2xl border text-left transition-all ${
+                        className={`p-3 sm:p-4 rounded-2xl border text-left transition-all ${
                           paymentMethod === m.id
                             ? 'border-[#1A56DB] bg-[#EFF6FF]'
                             : 'border-[#E5EEFF] hover:border-[#1A56DB]/40'
                         }`}
                       >
-                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${paymentMethod === m.id ? 'bg-[#1A56DB]' : 'bg-[#F8FAFF]'}`}>
+                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center mb-2 sm:mb-3 ${paymentMethod === m.id ? 'bg-[#1A56DB]' : 'bg-[#F8FAFF]'}`}>
                           <m.icon size={16} className={paymentMethod === m.id ? 'text-white' : 'text-[#6B7280]'} />
                         </div>
                         <p className={`text-sm font-semibold mb-0.5 ${paymentMethod === m.id ? 'text-[#1A56DB]' : 'text-[#0A1F44]'}`}>{m.label}</p>
@@ -423,7 +454,7 @@ export default function BookingPage({ tripId }: BookingPageProps) {
                   )}
                 </div>
 
-                <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF]">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5EEFF]">
                   <h2 className="font-semibold text-[#0A1F44] mb-4">Syarat & Ketentuan</h2>
                   <div className="space-y-3 text-sm text-[#374151] mb-5 max-h-40 overflow-y-auto pr-2">
                     {[
@@ -455,23 +486,61 @@ export default function BookingPage({ tripId }: BookingPageProps) {
                 </div>
               </div>
             )}
+            </div>
 
-            {/* CTA */}
-            <div className="mt-6 flex items-center justify-between">
+            {/* CTA — desktop inline */}
+            <div className="mt-6 hidden lg:flex items-center justify-between">
               {step > 0 && (
                 <button
-                  onClick={() => setStep((s) => s - 1)}
+                  onClick={goBack}
                   className="flex items-center gap-2 px-5 py-3 border border-[#E5EEFF] rounded-xl text-sm font-medium text-[#374151] hover:bg-[#F8FAFF] transition-colors"
                 >
                   <ArrowLeft size={15} /> Kembali
                 </button>
               )}
               <button
-                onClick={() => setStep((s) => s + 1)}
+                onClick={goNext}
                 disabled={!canProceed}
                 className={`flex items-center gap-2 px-8 py-3.5 rounded-xl font-semibold text-sm ml-auto transition-all ${
                   canProceed
                     ? 'bg-[#1A56DB] text-white hover:bg-[#1343B8] hover:shadow-lg'
+                    : 'bg-[#E5EEFF] text-[#9CA3AF] cursor-not-allowed'
+                }`}
+              >
+                {step === 2 ? (
+                  <>
+                    <Lock size={15} />
+                    Konfirmasi & Bayar DP
+                  </>
+                ) : (
+                  <>
+                    Lanjut
+                    <ChevronRight size={15} />
+                  </>
+                )}
+              </button>
+            </div>
+
+            {/* CTA — mobile fixed bottom bar */}
+            <div
+              className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-[#E5EEFF] px-4 pt-3 flex items-center gap-3"
+              style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))', boxShadow: '0 -4px 20px rgba(10,31,68,0.06)' }}
+            >
+              {step > 0 && (
+                <button
+                  onClick={goBack}
+                  className="shrink-0 flex items-center justify-center gap-1.5 px-4 py-3 border border-[#E5EEFF] rounded-xl text-sm font-medium text-[#374151] hover:bg-[#F8FAFF] transition-colors"
+                  aria-label="Kembali ke langkah sebelumnya"
+                >
+                  <ArrowLeft size={15} />
+                </button>
+              )}
+              <button
+                onClick={goNext}
+                disabled={!canProceed}
+                className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-sm transition-all ${
+                  canProceed
+                    ? 'bg-[#1A56DB] text-white active:scale-[0.98]'
                     : 'bg-[#E5EEFF] text-[#9CA3AF] cursor-not-allowed'
                 }`}
               >
@@ -493,10 +562,10 @@ export default function BookingPage({ tripId }: BookingPageProps) {
           {/* Right: Order summary */}
           <div>
             <div
-              className="bg-white rounded-3xl border border-[#E5EEFF] overflow-hidden sticky top-36"
+              className="bg-white rounded-3xl border border-[#E5EEFF] overflow-hidden lg:sticky lg:top-36"
               style={{ boxShadow: '0 8px 40px rgba(10,31,68,0.08)' }}
             >
-              <div className="relative h-36 bg-[#0A1F44] overflow-hidden">
+              <div className="relative h-28 sm:h-36 bg-[#0A1F44] overflow-hidden">
                 <img src={trip.image} alt={trip.title} className="w-full h-full object-cover opacity-60" />
                 <div className="absolute inset-0 bg-gradient-to-t from-[#0A1F44]/80 to-transparent" />
               </div>
