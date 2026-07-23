@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import {
   Heart, Share2, Star, MapPin, Clock, Users, CheckCircle2,
   ChevronDown, ChevronUp, Camera, Utensils, Shield, Info,
-  ChevronLeft, ChevronRight, Calendar, type LucideIcon,
+  ChevronLeft, ChevronRight, Calendar, Maximize2, X, type LucideIcon,
 } from 'lucide-react'
 import { fetchTrips, fetchTripDetail, type Trip, type TripDetail } from '@/data/trips'
 import TripCard from '@/components/TripCard'
@@ -32,6 +32,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
   const [expandedDay, setExpandedDay] = useState<number | null>(1)
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [galleryIdx, setGalleryIdx] = useState(0)
+  const [galleryPreviewOpen, setGalleryPreviewOpen] = useState(false)
   const [activeTab, setActiveTab] = useState<'overview' | 'itinerary' | 'include' | 'reviews'>('overview')
   const [pax, setPax] = useState(1)
 
@@ -40,6 +41,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
     setLoading(true)
     setError(null)
     setGalleryIdx(0)
+    setGalleryPreviewOpen(false)
     setExpandedDay(1)
     setSelectedDate(null)
     setActiveTab('overview')
@@ -60,6 +62,20 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
 
     return () => { cancelled = true }
   }, [tripId])
+
+  useEffect(() => {
+    if (!galleryPreviewOpen) return
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setGalleryPreviewOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.removeEventListener('keydown', onKeyDown)
+      document.body.style.overflow = prevOverflow
+    }
+  }, [galleryPreviewOpen])
 
   if (loading) {
     return (
@@ -84,7 +100,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
     <div className="bg-[#F8FAFF] min-h-screen">
       {/* ─── Breadcrumb ─── */}
       <div className="bg-white border-b border-[#E5EEFF]">
-        <div className="max-w-[1440px] mx-auto px-8 py-3 flex items-center gap-2 text-sm">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-3 flex items-center gap-2 text-sm overflow-x-auto whitespace-nowrap">
           <button onClick={() => onNavigate('landing')} className="text-[#6B7280] hover:text-[#1A56DB] transition-colors">Beranda</button>
           <span className="text-[#D1D5DB]">/</span>
           <button onClick={() => onNavigate('search')} className="text-[#6B7280] hover:text-[#1A56DB] transition-colors">Open Trip</button>
@@ -93,13 +109,16 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
         </div>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-5 sm:py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8">
           {/* ─── Left column ─── */}
           <div>
             {/* Gallery */}
-            <div className="relative rounded-3xl overflow-hidden bg-[#0A1F44] mb-6 group">
-              <div className="relative h-[460px]">
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-[#0A1F44] mb-6 group">
+              <div
+                className="relative h-64 sm:h-80 md:h-[400px] lg:h-[460px] cursor-zoom-in"
+                onClick={() => setGalleryPreviewOpen(true)}
+              >
                 <img
                   src={gallery[galleryIdx]}
                   alt={trip.title}
@@ -109,32 +128,41 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
 
                 {/* Controls */}
                 <button
-                  onClick={() => setGalleryIdx((i) => (i - 1 + gallery.length) % gallery.length)}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+                  onClick={(e) => { e.stopPropagation(); setGalleryIdx((i) => (i - 1 + gallery.length) % gallery.length) }}
+                  className="absolute left-2 sm:left-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:scale-110"
                 >
                   <ChevronLeft size={18} className="text-[#0A1F44]" />
                 </button>
                 <button
-                  onClick={() => setGalleryIdx((i) => (i + 1) % gallery.length)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:scale-110"
+                  onClick={(e) => { e.stopPropagation(); setGalleryIdx((i) => (i + 1) % gallery.length) }}
+                  className="absolute right-2 sm:right-4 top-1/2 -translate-y-1/2 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity hover:scale-110"
                 >
                   <ChevronRight size={18} className="text-[#0A1F44]" />
                 </button>
 
+                {/* Preview / expand */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); setGalleryPreviewOpen(true) }}
+                  className="absolute top-3 right-3 sm:top-4 sm:right-4 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-black/50 backdrop-blur-sm flex items-center justify-center text-white hover:bg-black/70 transition-colors"
+                  aria-label="Lihat pratinjau galeri"
+                >
+                  <Maximize2 size={14} />
+                </button>
+
                 {/* Photo count */}
-                <div className="absolute bottom-4 right-4 flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-black/50 backdrop-blur-sm text-white text-xs font-medium">
+                <div className="absolute bottom-3 right-3 sm:bottom-4 sm:right-4 flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-xl bg-black/50 backdrop-blur-sm text-white text-xs font-medium">
                   <Camera size={12} />
                   {galleryIdx + 1} / {gallery.length}
                 </div>
               </div>
 
               {/* Thumbnails */}
-              <div className="flex gap-2 p-3">
+              <div className="flex gap-2 p-3 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
                 {gallery.map((img, i) => (
                   <button
                     key={i}
                     onClick={() => setGalleryIdx(i)}
-                    className={`w-20 h-14 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${i === galleryIdx ? 'border-[#1A56DB]' : 'border-transparent opacity-60 hover:opacity-90'}`}
+                    className={`w-16 h-12 sm:w-20 sm:h-14 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${i === galleryIdx ? 'border-[#1A56DB]' : 'border-transparent opacity-60 hover:opacity-90'}`}
                   >
                     <img src={img} alt="" className="w-full h-full object-cover" />
                   </button>
@@ -142,19 +170,74 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
               </div>
             </div>
 
+            {/* Gallery preview lightbox */}
+            {galleryPreviewOpen && (
+              <div
+                className="fixed inset-0 z-[100] bg-black/90 flex flex-col items-center justify-center p-4"
+                onClick={() => setGalleryPreviewOpen(false)}
+              >
+                <button
+                  onClick={() => setGalleryPreviewOpen(false)}
+                  className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-colors"
+                  aria-label="Tutup pratinjau"
+                >
+                  <X size={20} />
+                </button>
+
+                <div className="relative w-full max-w-4xl" onClick={(e) => e.stopPropagation()}>
+                  <img
+                    src={gallery[galleryIdx]}
+                    alt={trip.title}
+                    className="w-full max-h-[75vh] object-contain rounded-xl"
+                  />
+                  <button
+                    onClick={() => setGalleryIdx((i) => (i - 1 + gallery.length) % gallery.length)}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 flex items-center justify-center hover:scale-110 transition-transform"
+                  >
+                    <ChevronLeft size={18} className="text-[#0A1F44]" />
+                  </button>
+                  <button
+                    onClick={() => setGalleryIdx((i) => (i + 1) % gallery.length)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-white/90 flex items-center justify-center hover:scale-110 transition-transform"
+                  >
+                    <ChevronRight size={18} className="text-[#0A1F44]" />
+                  </button>
+                  <div className="mt-3 text-center text-white text-sm">
+                    {galleryIdx + 1} / {gallery.length}
+                  </div>
+                </div>
+
+                <div
+                  className="mt-4 flex gap-2 max-w-full overflow-x-auto px-2 [&::-webkit-scrollbar]:hidden"
+                  style={{ scrollbarWidth: 'none' }}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {gallery.map((img, i) => (
+                    <button
+                      key={i}
+                      onClick={() => setGalleryIdx(i)}
+                      className={`w-14 h-10 sm:w-16 sm:h-12 rounded-lg overflow-hidden shrink-0 border-2 transition-all ${i === galleryIdx ? 'border-white' : 'border-transparent opacity-50 hover:opacity-80'}`}
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Title & meta */}
-            <div className="flex items-start justify-between gap-4 mb-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-start justify-between gap-3 sm:gap-4 mb-4">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#EFF6FF] text-[#1A56DB]">{trip.category}</span>
                   {trip.badge && (
                     <span className="px-2.5 py-1 rounded-lg text-xs font-semibold bg-[#1A56DB] text-white">{trip.badge}</span>
                   )}
                 </div>
-                <h1 className="font-display text-2xl lg:text-3xl font-bold text-[#0A1F44] leading-tight mb-3">
+                <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold text-[#0A1F44] leading-tight mb-3">
                   {trip.title}
                 </h1>
-                <div className="flex items-center gap-4 text-sm text-[#6B7280] flex-wrap">
+                <div className="flex items-center gap-3 sm:gap-4 text-sm text-[#6B7280] flex-wrap">
                   <span className="flex items-center gap-1.5"><MapPin size={14} className="text-[#1A56DB]" />{trip.location}</span>
                   <span className="flex items-center gap-1.5"><Clock size={14} className="text-[#1A56DB]" />{trip.duration}</span>
                   <span className="flex items-center gap-1.5"><Users size={14} className="text-[#1A56DB]" />{trip.groupSize}</span>
@@ -179,7 +262,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
             </div>
 
             {/* Tabs */}
-            <div className="flex gap-1 p-1 bg-white border border-[#E5EEFF] rounded-2xl mb-6">
+            <div className="flex gap-1 p-1 bg-white border border-[#E5EEFF] rounded-2xl mb-6 overflow-x-auto [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
               {([
                 { key: 'overview', label: 'Overview' },
                 { key: 'itinerary', label: 'Itinerary' },
@@ -189,7 +272,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
                 <button
                   key={tab.key}
                   onClick={() => setActiveTab(tab.key)}
-                  className={`flex-1 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  className={`flex-1 min-w-fit px-3 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-medium whitespace-nowrap transition-all ${
                     activeTab === tab.key
                       ? 'bg-[#1A56DB] text-white shadow-sm'
                       : 'text-[#6B7280] hover:text-[#374151]'
@@ -203,7 +286,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
             {/* Tab content */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
-                <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF]">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5EEFF]">
                   <h3 className="font-semibold text-[#0A1F44] mb-3 flex items-center gap-2">
                     <Info size={16} className="text-[#1A56DB]" /> Tentang Trip Ini
                   </h3>
@@ -216,7 +299,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
 
                 {/* Highlights */}
                 {trip.highlights && trip.highlights.length > 0 && (
-                  <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF]">
+                  <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5EEFF]">
                     <h3 className="font-semibold text-[#0A1F44] mb-4 flex items-center gap-2">
                       <Star size={16} className="text-[#1A56DB]" /> Trip Highlights
                     </h3>
@@ -329,7 +412,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
             {activeTab === 'reviews' && (
               <div className="space-y-4">
                 {/* Summary */}
-                <div className="bg-white rounded-2xl p-6 border border-[#E5EEFF] flex items-center gap-8">
+                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-[#E5EEFF] flex flex-col sm:flex-row items-center gap-4 sm:gap-8">
                   <div className="text-center">
                     <p className="text-5xl font-bold text-[#0A1F44] font-display">{trip.rating}</p>
                     <div className="flex gap-0.5 justify-center my-1.5">
@@ -355,16 +438,16 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
                 </div>
 
                 {trip.reviewList.map((r) => (
-                  <div key={r.name} className="bg-white rounded-2xl p-5 border border-[#E5EEFF]">
-                    <div className="flex items-start justify-between mb-3">
+                  <div key={r.name} className="bg-white rounded-2xl p-4 sm:p-5 border border-[#E5EEFF]">
+                    <div className="flex items-start justify-between gap-2 mb-3 flex-wrap">
                       <div className="flex items-center gap-3">
-                        <img src={r.avatar} alt={r.name} className="w-10 h-10 rounded-full object-cover" />
+                        <img src={r.avatar} alt={r.name} className="w-10 h-10 rounded-full object-cover shrink-0" />
                         <div>
                           <p className="font-semibold text-sm text-[#0A1F44]">{r.name}</p>
                           <p className="text-xs text-[#9CA3AF]">{r.trip} · {r.date}</p>
                         </div>
                       </div>
-                      <div className="flex gap-0.5">
+                      <div className="flex gap-0.5 shrink-0">
                         {Array.from({ length: r.rating }).map((_, i) => (
                           <Star key={i} size={13} className="fill-[#F59E0B] text-[#F59E0B]" />
                         ))}
@@ -378,11 +461,19 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
 
             {/* Related trips */}
             {relatedTrips.length > 0 && (
-              <div className="mt-12">
-                <h2 className="font-display text-2xl font-bold text-[#0A1F44] mb-6">Trip Serupa</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="mt-10 sm:mt-12">
+                <div className="flex items-center justify-between mb-4 sm:mb-6">
+                  <h2 className="font-display text-xl sm:text-2xl font-bold text-[#0A1F44]">Trip Serupa</h2>
+                  <span className="text-xs text-[#9CA3AF] hidden sm:inline">Geser untuk lihat lainnya →</span>
+                </div>
+                <div
+                  className="flex gap-4 overflow-x-auto pb-2 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden"
+                  style={{ scrollbarWidth: 'none' }}
+                >
                   {relatedTrips.map((t) => (
-                    <TripCard key={t.id} trip={t} onClick={() => onNavigate('detail', t.id)} size="sm" />
+                    <div key={t.id} className="w-[220px] sm:w-[250px] shrink-0 snap-start">
+                      <TripCard trip={t} onClick={() => onNavigate('detail', t.id)} size="sm" />
+                    </div>
                   ))}
                 </div>
               </div>
@@ -392,11 +483,11 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
           {/* ─── Right sticky column — Booking card ─── */}
           <div>
             <div
-              className="bg-white rounded-3xl border border-[#E5EEFF] overflow-hidden sticky top-24"
+              className="bg-white rounded-3xl border border-[#E5EEFF] overflow-hidden lg:sticky lg:top-24"
               style={{ boxShadow: '0 8px 40px rgba(10,31,68,0.10)' }}
             >
               {/* Price */}
-              <div className="p-6 border-b border-[#E5EEFF]">
+              <div className="p-5 sm:p-6 border-b border-[#E5EEFF]">
                 <div className="flex items-end gap-2 mb-1">
                   {trip.originalPrice && (
                     <p className="text-sm text-[#9CA3AF] line-through">
@@ -420,7 +511,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
                 </div>
               </div>
 
-              <div className="p-6 space-y-4">
+              <div className="p-5 sm:p-6 space-y-4">
                 {/* Date selection */}
                 <div>
                   <p className="text-xs font-semibold text-[#6B7280] uppercase tracking-wide mb-3 flex items-center gap-1.5">
