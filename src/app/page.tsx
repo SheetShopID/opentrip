@@ -76,6 +76,38 @@ function isBeforeToday(date: Date) {
   return date.getTime() < today.getTime()
 }
 
+function Reveal({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const node = ref.current
+    if (!node) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -40px 0px' }
+    )
+    observer.observe(node)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div
+      ref={ref}
+      className={`transition-all duration-700 ease-out motion-reduce:transition-none motion-reduce:!translate-y-0 ${
+        visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+      } ${className}`}
+    >
+      {children}
+    </div>
+  )
+}
+
 const TESTIMONIALS = [
   {
     name: 'Sari Dewi',
@@ -187,19 +219,19 @@ export default function LandingPage() {
           <span className="text-white/70 text-xs font-medium">Tonton Video</span>
         </button>
 
-        <div className="relative max-w-[1440px] mx-auto px-8 w-full py-20">
+        <div className="relative max-w-[1440px] mx-auto px-4 sm:px-8 w-full py-14 sm:py-20">
           <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 backdrop-blur-sm border border-white/20 mb-6">
               <div className="w-1.5 h-1.5 rounded-full bg-[#0EA5E9] animate-pulse" />
               <span className="text-white/90 text-sm font-medium">17.000+ Pulau Menunggu Anda</span>
             </div>
 
-            <h1 className="font-display text-5xl lg:text-6xl font-bold text-white leading-tight mb-5">
+            <h1 className="font-display text-3xl sm:text-4xl lg:text-6xl font-bold text-white leading-tight mb-5">
               Jelajahi Keajaiban<br />
               <span className="text-[#60A5FA] italic">Nusantara</span>{' '}
               Bersama
             </h1>
-            <p className="text-white/75 text-lg leading-relaxed mb-8 max-w-lg">
+            <p className="text-white/75 text-base sm:text-lg leading-relaxed mb-8 max-w-lg">
               Platform open trip terpercaya untuk destinasi eksotis Indonesia. Bergabung dengan ribuan traveler dari seluruh penjuru nusantara.
             </p>
 
@@ -243,7 +275,7 @@ export default function LandingPage() {
 
                 {showDatePicker && (
                   <div
-                    className="absolute z-20 top-full left-0 mt-2 w-[300px] bg-white rounded-2xl border border-[#E5EEFF] p-4"
+                    className="absolute z-20 top-full left-0 mt-2 w-[calc(100vw-2rem)] max-w-[300px] bg-white rounded-2xl border border-[#E5EEFF] p-4"
                     style={{ boxShadow: '0 16px 48px rgba(10,31,68,0.18)' }}
                   >
                     <div className="flex items-center justify-between mb-3">
@@ -350,7 +382,7 @@ export default function LandingPage() {
 
                 {showPeoplePicker && (
                   <div
-                    className="absolute z-20 top-full left-0 mt-2 w-[240px] bg-white rounded-2xl border border-[#E5EEFF] p-4"
+                    className="absolute z-20 top-full left-0 mt-2 w-[calc(100vw-2rem)] max-w-[240px] bg-white rounded-2xl border border-[#E5EEFF] p-4"
                     style={{ boxShadow: '0 16px 48px rgba(10,31,68,0.18)' }}
                   >
                     <div className="flex items-center justify-between">
@@ -387,7 +419,7 @@ export default function LandingPage() {
               </div>
               <button
                 onClick={() => onNavigate('search')}
-                className="flex items-center justify-center gap-2 px-6 py-3 bg-[#1A56DB] text-white rounded-xl font-semibold text-sm hover:bg-[#1343B8] active:scale-95 transition-all duration-150 shrink-0"
+                className="flex items-center justify-center gap-2 px-6 py-3 bg-[#1A56DB] text-white rounded-xl font-semibold text-sm hover:bg-[#1343B8] active:scale-95 transition-all duration-150 md:shrink-0"
                 style={{ boxShadow: '0 4px 16px rgba(26,86,219,0.35)' }}
               >
                 <Search size={16} />
@@ -414,39 +446,65 @@ export default function LandingPage() {
 
       {/* ─── STATS ─── */}
       <section className="bg-white border-y border-[#E5EEFF]">
-        <div className="max-w-[1440px] mx-auto px-8 py-8 grid grid-cols-2 md:grid-cols-4 gap-8">
-          {STATS.map((s) => (
-            <div key={s.label} className="text-center">
-              <p className="text-3xl font-bold text-[#1A56DB] font-display mb-1">{s.value}</p>
-              <p className="text-sm text-[#6B7280]">{s.label}</p>
-            </div>
-          ))}
-        </div>
+        <Reveal>
+          <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-6 sm:py-8 grid grid-cols-2 md:grid-cols-4 gap-5 sm:gap-8">
+            {STATS.map((s) => (
+              <div key={s.label} className="text-center">
+                <p className="text-2xl sm:text-3xl font-bold text-[#1A56DB] font-display mb-1">{s.value}</p>
+                <p className="text-xs sm:text-sm text-[#6B7280]">{s.label}</p>
+              </div>
+            ))}
+          </div>
+        </Reveal>
       </section>
 
       {/* ─── DESTINATIONS ─── */}
-      <section className="max-w-[1440px] mx-auto px-8 py-16">
-        <div className="flex items-end justify-between mb-8">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 py-10 sm:py-16">
+        <Reveal>
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-5 mb-6 sm:mb-8">
           <div>
             <p className="text-xs font-semibold text-[#1A56DB] uppercase tracking-widest mb-2">Destinasi Pilihan</p>
-            <h2 className="font-display text-3xl font-bold text-[#0A1F44]">
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#0A1F44]">
               Jelajahi Destinasi<br />Terpopuler di Indonesia
             </h2>
           </div>
-          <button
-            onClick={() => onNavigate('search')}
-            className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-[#1A56DB] hover:gap-2.5 transition-all"
-          >
-            Lihat Semua <ArrowRight size={15} />
-          </button>
+
+          {/* Trending destination preview — fills the space with something worth looking at,
+              doubles as the "lihat semua" entry point on every screen size */}
+          {!loading && !error && destinations.length > 0 && (
+            <button
+              onClick={() => onNavigate('search')}
+              className="group flex items-center gap-4 p-3 pr-5 bg-white rounded-2xl border border-[#E5EEFF] hover:border-[#1A56DB]/40 hover:shadow-lg transition-all duration-200 text-left w-full lg:w-auto lg:max-w-sm shrink-0"
+              style={{ boxShadow: '0 2px 16px rgba(10,31,68,0.06)' }}
+            >
+              <div className="relative w-16 h-16 rounded-xl overflow-hidden shrink-0">
+                <img
+                  src={destinations[0].image}
+                  alt={destinations[0].name}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5 mb-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#10B981] animate-pulse shrink-0" />
+                  <span className="text-[10px] font-semibold text-[#10B981] uppercase tracking-wide">Paling Dicari</span>
+                </div>
+                <p className="font-semibold text-[#0A1F44] text-sm truncate">{destinations[0].name}</p>
+                <p className="text-xs text-[#6B7280]">{destinations[0].tripCount} trip tersedia</p>
+              </div>
+              <ArrowRight size={16} className="text-[#1A56DB] shrink-0 group-hover:translate-x-1 transition-transform" />
+            </button>
+          )}
         </div>
+        </Reveal>
 
         {loading ? (
           <div className="py-12 text-center text-sm text-[#6B7280]">Memuat destinasi...</div>
         ) : error ? (
           <div className="py-12 text-center text-sm text-red-500">{error}</div>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <Reveal>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
             {destinations.map((dest, i) => (
               <button
                 key={dest.id}
@@ -468,26 +526,27 @@ export default function LandingPage() {
               </button>
             ))}
           </div>
+          </Reveal>
         )}
       </section>
 
       {/* ─── TRIPS ─── */}
-      <section className="max-w-[1440px] mx-auto px-8 pb-16">
-        <div className="flex items-end justify-between mb-6">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 pb-10 sm:pb-16">
+        <div className="flex items-center justify-between mb-5 sm:mb-6 gap-4">
           <div>
             <p className="text-xs font-semibold text-[#1A56DB] uppercase tracking-widest mb-2">Trip Tersedia</p>
-            <h2 className="font-display text-3xl font-bold text-[#0A1F44]">Open Trip Terpilih</h2>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#0A1F44]">Open Trip Terpilih</h2>
           </div>
           <button
             onClick={() => onNavigate('search')}
-            className="hidden md:flex items-center gap-1.5 text-sm font-semibold text-[#1A56DB] hover:gap-2.5 transition-all"
+            className="flex items-center gap-1 sm:gap-1.5 text-xs sm:text-sm font-semibold text-[#1A56DB] hover:gap-2.5 transition-all shrink-0"
           >
             Lihat Semua <ArrowRight size={15} />
           </button>
         </div>
 
         {/* Category pills */}
-        <div className="flex items-center gap-2 mb-8 overflow-x-auto pb-2">
+        <div className="flex items-center gap-2 mb-6 sm:mb-8 overflow-x-auto pb-2 [&::-webkit-scrollbar]:hidden" style={{ scrollbarWidth: 'none' }}>
           {CATEGORIES.map((cat) => (
             <button
               key={cat}
@@ -508,6 +567,7 @@ export default function LandingPage() {
         ) : error ? (
           <div className="py-12 text-center text-sm text-red-500">{error}</div>
         ) : (
+          <Reveal>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {filteredTrips.map((trip) => (
               <TripCard
@@ -517,21 +577,23 @@ export default function LandingPage() {
               />
             ))}
           </div>
+          </Reveal>
         )}
       </section>
 
       {/* ─── FEATURES ─── */}
       <section className="bg-white border-y border-[#E5EEFF]">
-        <div className="max-w-[1440px] mx-auto px-8 py-16">
-          <div className="text-center mb-12">
+        <Reveal>
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-10 sm:py-16">
+          <div className="text-center mb-8 sm:mb-12">
             <p className="text-xs font-semibold text-[#1A56DB] uppercase tracking-widest mb-2">Mengapa OpenTrip?</p>
-            <h2 className="font-display text-3xl font-bold text-[#0A1F44]">Perjalanan Terbaik Dimulai di Sini</h2>
+            <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#0A1F44]">Perjalanan Terbaik Dimulai di Sini</h2>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
             {FEATURES.map((f) => (
               <div
                 key={f.title}
-                className="p-6 rounded-2xl bg-[#F8FAFF] border border-[#E5EEFF] hover:border-[#1A56DB]/30 hover:-translate-y-1 transition-all duration-200"
+                className="p-5 sm:p-6 rounded-2xl bg-[#F8FAFF] border border-[#E5EEFF] hover:border-[#1A56DB]/30 hover:-translate-y-1 transition-all duration-200"
               >
                 <div className="w-12 h-12 rounded-2xl bg-[#EFF6FF] flex items-center justify-center mb-4">
                   <f.icon size={22} className="text-[#1A56DB]" />
@@ -542,19 +604,21 @@ export default function LandingPage() {
             ))}
           </div>
         </div>
+        </Reveal>
       </section>
 
       {/* ─── TESTIMONIALS ─── */}
-      <section className="max-w-[1440px] mx-auto px-8 py-16">
-        <div className="text-center mb-12">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 py-10 sm:py-16">
+        <Reveal>
+        <div className="text-center mb-8 sm:mb-12">
           <p className="text-xs font-semibold text-[#1A56DB] uppercase tracking-widest mb-2">Testimoni</p>
-          <h2 className="font-display text-3xl font-bold text-[#0A1F44]">Kata Mereka yang Sudah Jalan</h2>
+          <h2 className="font-display text-2xl sm:text-3xl font-bold text-[#0A1F44]">Kata Mereka yang Sudah Jalan</h2>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
           {TESTIMONIALS.map((t) => (
             <div
               key={t.name}
-              className="bg-white rounded-2xl p-6 border border-[#E5EEFF]"
+              className="bg-white rounded-2xl p-5 sm:p-6 border border-[#E5EEFF]"
               style={{ boxShadow: '0 2px 16px rgba(10,31,68,0.06)' }}
             >
               <div className="flex gap-1 mb-4">
@@ -577,12 +641,14 @@ export default function LandingPage() {
             </div>
           ))}
         </div>
+        </Reveal>
       </section>
 
       {/* ─── CTA BANNER ─── */}
-      <section className="max-w-[1440px] mx-auto px-8 pb-16">
+      <section className="max-w-[1440px] mx-auto px-4 sm:px-8 pb-10 sm:pb-16">
+        <Reveal>
         <div
-          className="relative overflow-hidden rounded-3xl p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-8"
+          className="relative overflow-hidden rounded-3xl p-6 sm:p-12 lg:p-16 flex flex-col lg:flex-row items-center justify-between gap-6 sm:gap-8"
           style={{ background: 'linear-gradient(135deg, #0A1F44 0%, #1A56DB 60%, #0EA5E9 100%)' }}
         >
           <div className="absolute inset-0 opacity-10">
@@ -591,31 +657,32 @@ export default function LandingPage() {
           </div>
           <div className="relative text-center lg:text-left">
             <p className="text-[#93C5FD] text-sm font-semibold uppercase tracking-widest mb-3">Mulai Petualangan Anda</p>
-            <h2 className="font-display text-3xl lg:text-4xl font-bold text-white mb-3">
+            <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-3">
               Ribuan Trip Menunggu.<br />Kapan Anda Siap?
             </h2>
             <p className="text-white/70 max-w-md">
               Bergabunglah dengan 50.000+ traveler yang telah menjelajah Indonesia bersama OpenTrip.
             </p>
           </div>
-          <div className="relative flex flex-col sm:flex-row gap-3 shrink-0">
+          <div className="relative flex flex-col sm:flex-row gap-3 w-full sm:w-auto shrink-0">
             <button
               onClick={() => onNavigate('search')}
-              className="px-8 py-4 bg-white text-[#1A56DB] font-semibold rounded-2xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150"
+              className="w-full sm:w-auto px-8 py-4 bg-white text-[#1A56DB] font-semibold rounded-2xl hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150"
             >
               Jelajahi Sekarang
             </button>
-            <button className="px-8 py-4 bg-white/15 backdrop-blur-sm border border-white/25 text-white font-semibold rounded-2xl hover:bg-white/25 transition-colors">
+            <button className="w-full sm:w-auto px-8 py-4 bg-white/15 backdrop-blur-sm border border-white/25 text-white font-semibold rounded-2xl hover:bg-white/25 transition-colors">
               Pelajari Lebih
             </button>
           </div>
         </div>
+        </Reveal>
       </section>
 
       {/* ─── FOOTER ─── */}
       <footer className="bg-[#0A1F44] text-white">
-        <div className="max-w-[1440px] mx-auto px-8 py-12">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pb-8 border-b border-white/10">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-10 sm:py-12">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 pb-8 border-b border-white/10">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-8 h-8 rounded-lg bg-[#1A56DB] flex items-center justify-center">
