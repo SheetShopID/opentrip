@@ -55,16 +55,16 @@ export default function SearchPage() {
     <div className="bg-[#F8FAFF] min-h-screen">
       {/* ─── Search header ─── */}
       <div className="bg-white border-b border-[#E5EEFF] sticky top-16 z-40">
-        <div className="max-w-[1440px] mx-auto px-8 py-4">
-          <div className="flex items-center gap-3">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-4">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Search input */}
-            <div className="flex-1 flex items-center gap-3 px-4 py-2.5 bg-[#F8FAFF] border border-[#E5EEFF] rounded-xl hover:border-[#1A56DB]/40 focus-within:border-[#1A56DB] transition-colors">
+            <div className="flex-1 min-w-0 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2.5 bg-[#F8FAFF] border border-[#E5EEFF] rounded-xl hover:border-[#1A56DB]/40 focus-within:border-[#1A56DB] transition-colors">
               <Search size={16} className="text-[#9CA3AF] shrink-0" />
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Cari destinasi, aktivitas, atau nama trip..."
-                className="flex-1 text-sm text-[#0A1F44] placeholder:text-[#9CA3AF] bg-transparent outline-none"
+                placeholder="Cari destinasi, aktivitas..."
+                className="flex-1 min-w-0 text-sm text-[#0A1F44] placeholder:text-[#9CA3AF] bg-transparent outline-none"
               />
               {query && (
                 <button onClick={() => setQuery('')} className="text-[#9CA3AF] hover:text-[#374151]">
@@ -93,14 +93,14 @@ export default function SearchPage() {
             {/* Filter toggle */}
             <button
               onClick={() => setShowFilters((v) => !v)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${
+              className={`shrink-0 flex items-center gap-2 px-3 sm:px-4 py-2.5 rounded-xl text-sm font-medium border transition-all ${
                 showFilters
                   ? 'bg-[#1A56DB] text-white border-[#1A56DB]'
                   : 'bg-white text-[#374151] border-[#E5EEFF] hover:border-[#1A56DB]/40'
               }`}
             >
               <SlidersHorizontal size={15} />
-              Filter
+              <span className="hidden sm:inline">Filter</span>
               {selectedCategories.length > 0 && (
                 <span className={`w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center ${showFilters ? 'bg-white text-[#1A56DB]' : 'bg-[#1A56DB] text-white'}`}>
                   {selectedCategories.length}
@@ -176,7 +176,7 @@ export default function SearchPage() {
         </div>
       </div>
 
-      <div className="max-w-[1440px] mx-auto px-8 py-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-6 sm:py-8">
         {loading ? (
           <div className="py-24 text-center text-sm text-[#6B7280]">Memuat trip...</div>
         ) : error ? (
@@ -184,7 +184,7 @@ export default function SearchPage() {
         ) : (
           <>
             {/* Results header */}
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
               <div>
                 <h1 className="text-xl font-bold text-[#0A1F44]">
                   {filteredTrips.length} Trip Ditemukan
@@ -193,21 +193,21 @@ export default function SearchPage() {
                   {query ? `Hasil pencarian untuk "${query}"` : 'Semua open trip tersedia'}
                 </p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 sm:gap-3">
                 {/* Sort */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-white border border-[#E5EEFF] rounded-xl">
-                  <ArrowUpDown size={14} className="text-[#9CA3AF]" />
+                <div className="flex-1 sm:flex-initial flex items-center gap-2 px-3 py-2 bg-white border border-[#E5EEFF] rounded-xl min-w-0">
+                  <ArrowUpDown size={14} className="text-[#9CA3AF] shrink-0" />
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="text-sm text-[#374151] bg-transparent outline-none cursor-pointer"
+                    className="w-full sm:w-auto min-w-0 text-sm text-[#374151] bg-transparent outline-none cursor-pointer"
                   >
                     {SORT_OPTIONS.map((o) => <option key={o}>{o}</option>)}
                   </select>
                 </div>
 
                 {/* View mode */}
-                <div className="flex items-center gap-1 p-1 bg-white border border-[#E5EEFF] rounded-xl">
+                <div className="shrink-0 flex items-center gap-1 p-1 bg-white border border-[#E5EEFF] rounded-xl">
                   <button
                     onClick={() => setViewMode('grid')}
                     className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-[#1A56DB] text-white' : 'text-[#9CA3AF] hover:text-[#374151]'}`}
@@ -264,18 +264,18 @@ export default function SearchPage() {
                   <div
                     key={trip.id}
                     onClick={() => onNavigate('detail', trip.id)}
-                    className="bg-white border border-[#E5EEFF] rounded-2xl overflow-hidden flex cursor-pointer hover:border-[#1A56DB]/30 hover:shadow-lg transition-all duration-200 group"
+                    className="bg-white border border-[#E5EEFF] rounded-2xl overflow-hidden flex flex-col sm:flex-row cursor-pointer hover:border-[#1A56DB]/30 hover:shadow-lg transition-all duration-200 group"
                   >
-                    <div className="w-64 h-44 shrink-0 overflow-hidden bg-[#E0F2FE]">
+                    <div className="w-full h-44 sm:w-64 sm:h-44 shrink-0 overflow-hidden bg-[#E0F2FE]">
                       <img
                         src={trip.image}
                         alt={trip.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                       />
                     </div>
-                    <div className="flex-1 p-5 flex flex-col justify-between">
+                    <div className="flex-1 min-w-0 p-4 sm:p-5 flex flex-col justify-between gap-3">
                       <div>
-                        <div className="flex items-center gap-2 mb-1.5">
+                        <div className="flex items-center gap-2 mb-1.5 flex-wrap">
                           <span className="text-xs font-semibold text-[#1A56DB]">{trip.category}</span>
                           {trip.badge && (
                             <span className="px-2 py-0.5 rounded-md text-xs font-semibold bg-[#EFF6FF] text-[#1A56DB]">
@@ -285,17 +285,17 @@ export default function SearchPage() {
                         </div>
                         <h3 className="font-semibold text-[#0A1F44] text-base mb-2">{trip.title}</h3>
                         <div className="flex items-center gap-1 text-xs text-[#6B7280]">
-                          <MapPin size={12} />
-                          {trip.location}
+                          <MapPin size={12} className="shrink-0" />
+                          <span className="truncate">{trip.location}</span>
                         </div>
                       </div>
-                      <div className="flex items-center justify-between pt-3 border-t border-[#E5EEFF]">
-                        <div className="flex items-center gap-4 text-xs text-[#6B7280]">
-                          <span>⏱ {trip.duration}</span>
-                          <span>👥 {trip.groupSize}</span>
-                          <span>⭐ {trip.rating} ({trip.reviews})</span>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-3 border-t border-[#E5EEFF]">
+                        <div className="flex items-center gap-3 sm:gap-4 text-xs text-[#6B7280] flex-wrap">
+                          <span className="whitespace-nowrap">⏱ {trip.duration}</span>
+                          <span className="whitespace-nowrap">👥 {trip.groupSize}</span>
+                          <span className="whitespace-nowrap">⭐ {trip.rating} ({trip.reviews})</span>
                         </div>
-                        <div className="text-right">
+                        <div className="text-left sm:text-right shrink-0">
                           {trip.originalPrice && (
                             <p className="text-xs text-[#9CA3AF] line-through">Rp {trip.originalPrice.toLocaleString('id-ID')}</p>
                           )}
