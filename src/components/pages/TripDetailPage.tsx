@@ -110,7 +110,7 @@ export default function TripDetailPage({ tripId }: TripDetailPageProps) {
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-5 sm:py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] xl:grid-cols-[840px_440px] xl:justify-center 2xl:grid-cols-[900px_480px] gap-6 lg:gap-8">
           {/* ─── Left column ─── */}
           <div>
             {/* Gallery */}
